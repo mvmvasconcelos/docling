@@ -46,3 +46,7 @@ logs/
 # Arquivos do sistema operacional
 .DS_Store
 Thumbs.db
+
+# Outros
+info.md
+nginx/

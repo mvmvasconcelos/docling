@@ -9,6 +9,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from app.api.routes import router as api_router
+from app.core.version import get_version, get_version_info
 
 # Carregar variáveis de ambiente
 load_dotenv()
@@ -26,7 +27,7 @@ STATIC_DIR = BASE_DIR / "static"
 app = FastAPI(
     title="Docling Service",
     description="Serviço para processamento de documentos usando Docling",
-    version="0.1.0",
+    version=get_version(),
     # Definir o caminho base para a documentação e rotas
     # Isso é importante quando o serviço está atrás de um proxy reverso
     root_path=BASE_PATH
@@ -53,7 +54,14 @@ app.include_router(api_router, prefix="/api")
 # Rota raiz - API JSON
 @app.get("/", response_class=JSONResponse)
 async def root():
-    return {"message": "Bem-vindo ao serviço Docling", "status": "online"}
+    version_info = get_version_info()
+    return {
+        "message": "Bem-vindo ao serviço Docling",
+        "status": "online",
+        "version": version_info["version"],
+        "phase": version_info["phase"],
+        "last_updated": version_info["last_updated"]
+    }
 
 # Rota para a interface web
 @app.get("/web", response_class=HTMLResponse)
