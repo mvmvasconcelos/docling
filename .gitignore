@@ -36,6 +36,7 @@ results/
 # Logs
 logs/
 *.log
+file_cleaner_config.txt
 
 # Arquivos de IDE
 .idea/

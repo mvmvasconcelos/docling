@@ -12,6 +12,7 @@ services:
     volumes:
       - ./uploads:/app/uploads
       - ./results:/app/results
+      - ./logs:/app/logs
     env_file:
       - .env
     restart: unless-stopped
@@ -28,6 +29,7 @@ services:
       - ./:/app
       - /app/uploads
       - /app/results
+      - ./logs:/app/logs
     env_file:
       - .env
     environment:

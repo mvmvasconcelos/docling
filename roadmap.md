@@ -1,7 +1,7 @@
 # 🚀 Roadmap do Projeto Docling
 
 [![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow)](http://localhost:8082/docling/)
-[![Versão](https://img.shields.io/badge/Versão-1.2.0-blue)](http://localhost:8082/docling/)
+[![Versão](https://img.shields.io/badge/Versão-1.3.1-blue)](http://localhost:8082/docling/)
 [![Última atualização](https://img.shields.io/badge/Última%20atualização-Abril%202025-green)](http://localhost:8082/docling/)
 
 <!-- Nota: A versão do projeto é gerenciada centralmente em app/core/version.py -->
@@ -39,7 +39,7 @@
 
 | Fase | Descrição | Progresso | Status |
 |:----:|:------------|:----------:|:--------:|
-| **1** | **Fundação do Projeto** | `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬜` 95% | 🛠️ Em andamento |
+| **1** | **Fundação do Projeto** | `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬜` 98% | 🛠️ Em andamento |
 | **2** | **Desenvolvimento da API** | `⬛⬛⬛⬛⬛⬛⬛⬜⬜⬜` 70% | 🛠️ Em andamento |
 | **3** | **Melhorias e Otimizações** | `⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜` 0% | ⏳ Pendente |
 | **4** | **Funcionalidades Avançadas** | `⬛⬛⬜⬜⬜⬜⬜⬜⬜⬜` 20% | 🛠️ Em andamento |
@@ -60,7 +60,7 @@
 
 # 🏗️ 1. Fundação do Projeto (MVP - Fase 1)
 
-> **Progresso**: `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬜` 95%
+> **Progresso**: `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬜` 98%
 > 
 > **Status**: 🛠️ Em andamento
 
@@ -111,14 +111,45 @@ Desenvolver testes abrangentes para garantir que as funcionalidades principais f
 ### ✅ 1.3.1 Implementar interface de armazenamento (Storage Interface)
 Criar abstração para operações de armazenamento, permitindo diferentes implementações (local, volumes Docker, serviços em nuvem) sem alterar o código da aplicação.
 
+**Subtarefas:**
+- ✅ **1.3.1.1** Definição da interface StorageInterface
+- ✅ **1.3.1.2** Implementação de fábrica para criação de instâncias de storage
+- ✅ **1.3.1.3** Desenvolvimento de métodos para gerenciamento de arquivos
+- ✅ **1.3.1.4** Criação de sistema de configuração para diferentes storages
+
 ### ✅ 1.3.2 Criar implementação para armazenamento local
 Desenvolver sistema de armazenamento que utilize o sistema de arquivos do container ou volumes Docker persistentes, garantindo que os dados sobrevivam a reinicializações.
 
-### 🔜 1.3.3 Adicionar sistema de limpeza automática de arquivos temporários
+**Subtarefas:**
+- ✅ **1.3.2.1** Implementação da classe LocalStorage
+- ✅ **1.3.2.2** Configuração de volumes Docker persistentes
+- ✅ **1.3.2.3** Desenvolvimento de métodos para operações CRUD de arquivos
+- ✅ **1.3.2.4** Implementação de estrutura de diretórios para diferentes tipos de dados
+
+### ✅ 1.3.3 Adicionar sistema de limpeza automática de arquivos temporários
 Implementar rotinas para remover arquivos temporários não utilizados, otimizando o uso de espaço em disco no servidor Ubuntu e nos volumes Docker.
+
+**Subtarefas:**
+- ✅ **1.3.3.1** Análise e identificação de tipos de arquivos temporários
+- ✅ **1.3.3.2** Definição de políticas de retenção por tipo de arquivo
+- ✅ **1.3.3.3** Implementação de módulo para identificação de arquivos obsoletos
+- ✅ **1.3.3.4** Desenvolvimento de mecanismo de remoção segura
+- ✅ **1.3.3.5** Criação de script de linha de comando para limpeza manual
+- ✅ **1.3.3.6** Implementação de agendamento periódico via cron
+- ✅ **1.3.3.7** Integração com sistema de logging para registro de operações
+- ✅ **1.3.3.8** Desenvolvimento de testes automatizados para o sistema de limpeza
+- ✅ **1.3.3.9** Configuração de alertas para situações críticas de espaço em disco
+- ✅ **1.3.3.10** Documentação do sistema de limpeza e políticas de retenção
 
 ### 🔜 1.3.4 Implementar logging de operações de arquivo
 Criar sistema de logs detalhados para rastrear operações de arquivo, facilitando diagnóstico de problemas no ambiente containerizado e monitoramento via Nginx.
+
+**Subtarefas:**
+- 🔜 **1.3.4.1** Definição de estrutura e formato de logs para operações de arquivo
+- 🔜 **1.3.4.2** Implementação de middleware para interceptação de operações de I/O
+- 🔜 **1.3.4.3** Criação de sistema de rotação de logs para evitar arquivos muito grandes
+- 🔜 **1.3.4.4** Integração com sistema de alerta para operações críticas
+- 🔜 **1.3.4.5** Desenvolvimento de interface para consulta e análise de logs
 
 # 🌐 2. Desenvolvimento da API (MVP - Fase 2)
 
@@ -311,4 +342,4 @@ Desenvolver interface completa para administração de usuários, incluindo cria
 
 **Projeto Docling**  
 **IFSul Câmpus Venâncio Aires**  
-Última atualização: 23 de Abril 2025
+Última atualização: 24 de Abril 2025

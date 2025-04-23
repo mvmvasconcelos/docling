@@ -28,6 +28,9 @@ show_usage() {
     echo "  format        Formata o código automaticamente"
     echo "  test          Executa os testes unitários"
     echo "  coverage      Executa os testes e gera relatório de cobertura"
+    echo "  clean         Limpa arquivos temporários"
+    echo "  monitor       Monitora o espaço em disco"
+    echo "  setup-clean   Configura a limpeza automática de arquivos temporários"
 }
 
 # Processar comando
@@ -81,6 +84,26 @@ case "$COMMAND" in
     coverage)
         echo "Executando testes e gerando relatório de cobertura..."
         ./scripts/test.sh --coverage
+        ;;
+    clean)
+        echo "Limpando arquivos temporários..."
+        if [ -z "$2" ]; then
+            docker exec docling python scripts/clean_temp_files.py
+        else
+            docker exec docling python scripts/clean_temp_files.py $2 $3 $4 $5 $6 $7 $8 $9
+        fi
+        ;;
+    monitor)
+        echo "Monitorando espaço em disco..."
+        if [ -z "$2" ]; then
+            docker exec docling python scripts/monitor_disk_space.py
+        else
+            docker exec docling python scripts/monitor_disk_space.py $2 $3 $4 $5 $6 $7 $8 $9
+        fi
+        ;;
+    setup-clean)
+        echo "Configurando limpeza automática de arquivos temporários..."
+        sudo ./scripts/setup_cron_job.sh
         ;;
     *)
         show_usage

@@ -20,7 +20,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Criar diretórios necessários
-RUN mkdir -p uploads results
+RUN mkdir -p uploads results logs
 
 # Imagem de produção
 FROM base as production
