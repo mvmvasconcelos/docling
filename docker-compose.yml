@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  docling:
+    build: .
+    container_name: docling
+    ports:
+      - "8082:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./results:/app/results
+    env_file:
+      - .env
+    restart: unless-stopped

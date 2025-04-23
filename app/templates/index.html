@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <style>
+        /* Estilos básicos inline para não depender de arquivos externos inicialmente */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            background-color: #f4f4f4;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .upload-section {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="file"] {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .results-section {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            display: none; /* Inicialmente oculto */
+        }
+        .logs-section {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .log-info {
+            color: #2196F3;
+        }
+        .log-error {
+            color: #F44336;
+        }
+        .log-success {
+            color: #4CAF50;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Docling - Interface Web</h1>
+        <p>Faça upload de documentos para processamento</p>
+    </header>
+
+    <div class="container">
+        <section class="upload-section">
+            <h2>Upload de Documento</h2>
+            <form id="upload-form">
+                <div class="form-group">
+                    <label for="document">Selecione um documento (PDF, DOCX, XLSX):</label>
+                    <input type="file" id="document" name="file" accept=".pdf,.docx,.xlsx" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" id="submit-btn">Enviar para Processamento</button>
+                </div>
+            </form>
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <p>Processando documento, por favor aguarde...</p>
+            </div>
+        </section>
+
+        <section class="results-section" id="results-section">
+            <h2>Resultados do Processamento</h2>
+            <div id="results-content">
+                <!-- Os resultados serão exibidos aqui -->
+            </div>
+        </section>
+
+        <section class="logs-section">
+            <h2>Logs</h2>
+            <div id="logs">
+                <div class="log-entry log-info">Sistema iniciado. Aguardando upload de documento.</div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadForm = document.getElementById('upload-form');
+            const submitBtn = document.getElementById('submit-btn');
+            const loading = document.getElementById('loading');
+            const resultsSection = document.getElementById('results-section');
+            const resultsContent = document.getElementById('results-content');
+            const logsDiv = document.getElementById('logs');
+
+            // Função para adicionar logs
+            function addLog(message, type = 'info') {
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry log-${type}`;
+                logEntry.textContent = message;
+                logsDiv.appendChild(logEntry);
+                logsDiv.scrollTop = logsDiv.scrollHeight; // Auto-scroll para o último log
+            }
+
+            // Função para formatar JSON para exibição
+            function formatJSON(json) {
+                const pre = document.createElement('pre');
+                pre.textContent = JSON.stringify(json, null, 2);
+                return pre;
+            }
+
+            // Manipulador de envio do formulário
+            uploadForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const fileInput = document.getElementById('document');
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    addLog('Nenhum arquivo selecionado.', 'error');
+                    return;
+                }
+
+                // Verificar tipo de arquivo
+                const allowedTypes = ['.pdf', '.docx', '.xlsx'];
+                const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                if (!allowedTypes.includes(fileExt)) {
+                    addLog(`Tipo de arquivo não suportado: ${fileExt}. Use: ${allowedTypes.join(', ')}`, 'error');
+                    return;
+                }
+
+                // Preparar formulário para envio
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('extract_text', 'true');
+                formData.append('extract_tables', 'true');
+                formData.append('extract_images', 'false');
+
+                // Mostrar loading e desabilitar botão
+                submitBtn.disabled = true;
+                loading.style.display = 'block';
+                addLog(`Iniciando processamento do arquivo: ${file.name}`, 'info');
+
+                try {
+                    // Enviar requisição para a API
+                    const response = await fetch('/api/process', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Erro HTTP: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    
+                    // Exibir resultados
+                    addLog('Processamento concluído com sucesso!', 'success');
+                    resultsContent.innerHTML = '';
+                    resultsContent.appendChild(formatJSON(data));
+                    resultsSection.style.display = 'block';
+                    
+                } catch (error) {
+                    addLog(`Erro durante o processamento: ${error.message}`, 'error');
+                } finally {
+                    // Esconder loading e habilitar botão
+                    submitBtn.disabled = false;
+                    loading.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

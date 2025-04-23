@@ -1,0 +1,53 @@
+# Arquivos e diretórios a serem ignorados durante a construção do Docker
+
+# Diretórios de ambiente virtual
+venv/
+ENV/
+env/
+
+# Diretórios de upload e resultados
+uploads/
+results/
+
+# Arquivos de configuração local
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos de IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Arquivos Git
+.git/
+.gitignore
+
+# Arquivos Python compilados
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
