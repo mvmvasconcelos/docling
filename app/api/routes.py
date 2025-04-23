@@ -14,6 +14,7 @@ router = APIRouter()
 # Garantir que o diretório de upload exista
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+
 @router.post("/process")
 async def upload_and_process_document(
     file: UploadFile = File(...),
@@ -36,7 +37,7 @@ async def upload_and_process_document(
     if file_ext not in allowed_extensions:
         raise HTTPException(
             status_code=400,
-            detail=f"Tipo de arquivo não suportado. Use: {', '.join(allowed_extensions)}"
+            detail=f"Tipo de arquivo não suportado. Use: {', '.join(allowed_extensions)}",
         )
 
     # Gerar nome único para o arquivo
@@ -57,7 +58,7 @@ async def upload_and_process_document(
             original_filename=file.filename,
             extract_text=extract_text,
             extract_tables=extract_tables,
-            extract_images=extract_images
+            extract_images=extract_images,
         )
         return result
     except Exception as e:
@@ -65,6 +66,7 @@ async def upload_and_process_document(
         if os.path.exists(file_path):
             os.remove(file_path)
         raise HTTPException(status_code=500, detail=f"Erro ao processar documento: {str(e)}")
+
 
 @router.get("/documents/{document_id}")
 async def get_document(document_id: str):
@@ -81,10 +83,16 @@ async def get_document(document_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao obter informações do documento: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao obter informações do documento: {str(e)}"
+        )
+
 
 @router.get("/documents/{document_id}/download/{format}")
-async def download_document(document_id: str, format: str = Path(..., description="Formato de download: original, markdown, html")):
+async def download_document(
+    document_id: str,
+    format: str = Path(..., description="Formato de download: original, markdown, html"),
+):
     """
     Faz o download do documento processado no formato especificado.
 
@@ -103,7 +111,9 @@ async def download_document(document_id: str, format: str = Path(..., descriptio
         # Obter o caminho do arquivo solicitado
         file_path = document_info.get("files", {}).get(format)
         if not file_path or not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail=f"Arquivo no formato {format} não disponível")
+            raise HTTPException(
+                status_code=404, detail=f"Arquivo no formato {format} não disponível"
+            )
 
         # Definir o tipo de conteúdo e nome do arquivo para download
         filename = os.path.basename(file_path)
@@ -118,19 +128,21 @@ async def download_document(document_id: str, format: str = Path(..., descriptio
             filename = f"{document_id}.html"
 
         # Retornar o arquivo para download
-        return FileResponse(
-            path=file_path,
-            media_type=media_type,
-            filename=filename
-        )
+        return FileResponse(path=file_path, media_type=media_type, filename=filename)
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao fazer download do documento: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao fazer download do documento: {str(e)}"
+        )
+
 
 @router.get("/documents/{document_id}/preview/{format}")
-async def preview_document(document_id: str, format: str = Path(..., description="Formato de preview: markdown, html, text")):
+async def preview_document(
+    document_id: str,
+    format: str = Path(..., description="Formato de preview: markdown, html, text"),
+):
     """
     Visualiza o conteúdo do documento processado no formato especificado.
 
@@ -154,7 +166,9 @@ async def preview_document(document_id: str, format: str = Path(..., description
             file_path = document_info.get("files", {}).get(format)
 
         if not file_path or not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail=f"Conteúdo no formato {format} não disponível")
+            raise HTTPException(
+                status_code=404, detail=f"Conteúdo no formato {format} não disponível"
+            )
 
         # Ler o conteúdo do arquivo
         with open(file_path, "r", encoding="utf-8") as f:
@@ -171,12 +185,14 @@ async def preview_document(document_id: str, format: str = Path(..., description
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao visualizar o documento: {str(e)}")
 
+
 @router.get("/health")
 async def health_check():
     """
     Verifica o status do serviço.
     """
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
 
 @router.get("/version")
 async def get_version():

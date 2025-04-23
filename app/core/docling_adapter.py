@@ -19,6 +19,7 @@ import openpyxl
 import markdown
 from PIL import Image
 
+
 class DoclingAdapter:
     """
     Adaptador para processamento de documentos.
@@ -36,7 +37,7 @@ class DoclingAdapter:
         file_path: Union[str, Path],
         extract_text: bool = True,
         extract_tables: bool = True,
-        extract_images: bool = False
+        extract_images: bool = False,
     ) -> Dict[str, Any]:
         """
         Processa um documento usando bibliotecas específicas para cada tipo de arquivo.
@@ -58,15 +59,19 @@ class DoclingAdapter:
             processing_result = {
                 "status": "success",
                 "message": "Documento processado com sucesso",
-                "content": {}
+                "content": {},
             }
 
             # Processar com base na extensão do arquivo
-            if file_extension == '.pdf':
-                self._process_pdf(file_path, processing_result, extract_text, extract_tables, extract_images)
-            elif file_extension == '.docx':
-                self._process_docx(file_path, processing_result, extract_text, extract_tables, extract_images)
-            elif file_extension in ['.xlsx', '.xls']:
+            if file_extension == ".pdf":
+                self._process_pdf(
+                    file_path, processing_result, extract_text, extract_tables, extract_images
+                )
+            elif file_extension == ".docx":
+                self._process_docx(
+                    file_path, processing_result, extract_text, extract_tables, extract_images
+                )
+            elif file_extension in [".xlsx", ".xls"]:
                 self._process_excel(file_path, processing_result, extract_text, extract_tables)
             else:
                 processing_result["status"] = "error"
@@ -80,12 +85,12 @@ class DoclingAdapter:
             return {
                 "status": "error",
                 "message": f"Erro ao processar documento: {str(e)}",
-                "content": None
+                "content": None,
             }
 
     def _process_pdf(self, file_path, result, extract_text, extract_tables, extract_images):
         """Processa um arquivo PDF."""
-        with open(file_path, 'rb') as file:
+        with open(file_path, "rb") as file:
             pdf_reader = PyPDF2.PdfReader(file)
 
             # Extrair texto
@@ -102,7 +107,11 @@ class DoclingAdapter:
             # Metadados
             result["metadata"] = {
                 "pages": len(pdf_reader.pages),
-                "title": pdf_reader.metadata.title if pdf_reader.metadata and hasattr(pdf_reader.metadata, 'title') else "Sem título"
+                "title": (
+                    pdf_reader.metadata.title
+                    if pdf_reader.metadata and hasattr(pdf_reader.metadata, "title")
+                    else "Sem título"
+                ),
             }
 
     def _process_docx(self, file_path, result, extract_text, extract_tables, extract_images):
@@ -117,8 +126,8 @@ class DoclingAdapter:
             # Converter para markdown (texto simples com formatação básica)
             md_text = ""
             for para in doc.paragraphs:
-                if para.style.name.startswith('Heading'):
-                    level = int(para.style.name.replace('Heading', ''))
+                if para.style.name.startswith("Heading"):
+                    level = int(para.style.name.replace("Heading", ""))
                     md_text += "#" * level + " " + para.text + "\n\n"
                 else:
                     md_text += para.text + "\n\n"
@@ -140,8 +149,12 @@ class DoclingAdapter:
 
         # Metadados
         result["metadata"] = {
-            "title": doc.core_properties.title if hasattr(doc, 'core_properties') and hasattr(doc.core_properties, 'title') else "Sem título",
-            "pages": 1  # DOCX não tem conceito de página
+            "title": (
+                doc.core_properties.title
+                if hasattr(doc, "core_properties") and hasattr(doc.core_properties, "title")
+                else "Sem título"
+            ),
+            "pages": 1,  # DOCX não tem conceito de página
         }
 
     def _process_excel(self, file_path, result, extract_text, extract_tables):
@@ -155,12 +168,14 @@ class DoclingAdapter:
             tables = []
             for sheet_name in sheet_names:
                 df = pd.read_excel(file_path, sheet_name=sheet_name)
-                tables.append({
-                    "page": 1,  # Excel não tem conceito de página
-                    "sheet": sheet_name,
-                    "data": df.values.tolist(),
-                    "headers": df.columns.tolist()
-                })
+                tables.append(
+                    {
+                        "page": 1,  # Excel não tem conceito de página
+                        "sheet": sheet_name,
+                        "data": df.values.tolist(),
+                        "headers": df.columns.tolist(),
+                    }
+                )
 
             result["content"]["tables"] = tables
 
@@ -177,10 +192,7 @@ class DoclingAdapter:
             result["content"]["html"] = f"<pre>{text}</pre>"  # Texto simples como HTML
 
         # Metadados
-        result["metadata"] = {
-            "title": os.path.basename(file_path),
-            "sheets": sheet_names
-        }
+        result["metadata"] = {"title": os.path.basename(file_path), "sheets": sheet_names}
 
     def get_document_metadata(self, file_path: Union[str, Path]) -> Dict[str, Any]:
         """
@@ -198,38 +210,41 @@ class DoclingAdapter:
 
             metadata = {
                 "title": os.path.basename(file_path),
-                "format": file_extension[1:] if file_extension.startswith('.') else file_extension
+                "format": file_extension[1:] if file_extension.startswith(".") else file_extension,
             }
 
             # Extrair metadados específicos por tipo de arquivo
-            if file_extension == '.pdf':
-                with open(file_path, 'rb') as file:
+            if file_extension == ".pdf":
+                with open(file_path, "rb") as file:
                     pdf_reader = PyPDF2.PdfReader(file)
                     metadata["pages"] = len(pdf_reader.pages)
-                    if pdf_reader.metadata and hasattr(pdf_reader.metadata, 'title') and pdf_reader.metadata.title:
+                    if (
+                        pdf_reader.metadata
+                        and hasattr(pdf_reader.metadata, "title")
+                        and pdf_reader.metadata.title
+                    ):
                         metadata["title"] = pdf_reader.metadata.title
 
-            elif file_extension == '.docx':
+            elif file_extension == ".docx":
                 doc = docx.Document(file_path)
-                if hasattr(doc, 'core_properties') and hasattr(doc.core_properties, 'title') and doc.core_properties.title:
+                if (
+                    hasattr(doc, "core_properties")
+                    and hasattr(doc.core_properties, "title")
+                    and doc.core_properties.title
+                ):
                     metadata["title"] = doc.core_properties.title
 
-            elif file_extension in ['.xlsx', '.xls']:
+            elif file_extension in [".xlsx", ".xls"]:
                 excel_file = pd.ExcelFile(file_path)
                 metadata["sheets"] = excel_file.sheet_names
 
             return metadata
 
         except Exception as e:
-            return {
-                "status": "error",
-                "message": f"Erro ao extrair metadados: {str(e)}"
-            }
+            return {"status": "error", "message": f"Erro ao extrair metadados: {str(e)}"}
 
     def convert_to_format(
-        self,
-        file_path: Union[str, Path],
-        output_format: str = "markdown"
+        self, file_path: Union[str, Path], output_format: str = "markdown"
     ) -> Optional[str]:
         """
         Converte um documento para o formato especificado.

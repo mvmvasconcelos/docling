@@ -30,7 +30,7 @@ app = FastAPI(
     version=get_version(),
     # Definir o caminho base para a documentação e rotas
     # Isso é importante quando o serviço está atrás de um proxy reverso
-    root_path=BASE_PATH
+    root_path=BASE_PATH,
 )
 
 # Configurar templates
@@ -51,6 +51,7 @@ app.add_middleware(
 # Incluir rotas da API
 app.include_router(api_router, prefix="/api")
 
+
 # Rota raiz - API JSON
 @app.get("/", response_class=JSONResponse)
 async def root():
@@ -60,16 +61,17 @@ async def root():
         "status": "online",
         "version": version_info["version"],
         "phase": version_info["phase"],
-        "last_updated": version_info["last_updated"]
+        "last_updated": version_info["last_updated"],
     }
+
 
 # Rota para a interface web
 @app.get("/web", response_class=HTMLResponse)
 async def web_interface(request: Request):
     return templates.TemplateResponse(
-        "index.html",
-        {"request": request, "title": "Docling - Interface Web"}
+        "index.html", {"request": request, "title": "Docling - Interface Web"}
     )
+
 
 # Manipulador de exceções
 @app.exception_handler(HTTPException)
@@ -78,6 +80,7 @@ async def http_exception_handler(request, exc):
         status_code=exc.status_code,
         content={"message": exc.detail},
     )
+
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))

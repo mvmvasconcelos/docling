@@ -1,0 +1,6 @@
+# Ferramentas de desenvolvimento
+black>=23.10.0        # Formatador de código
+flake8>=6.1.0         # Linter para verificar conformidade com PEP 8
+mypy>=1.6.1           # Verificador de tipos estáticos
+pytest>=7.4.3         # Framework de testes
+pytest-cov>=4.1.0     # Plugin para cobertura de testes

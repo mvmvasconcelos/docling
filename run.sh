@@ -23,6 +23,9 @@ show_usage() {
     echo "  logs          Mostra os logs dos containers"
     echo "  status        Mostra o status dos containers"
     echo "  build         Reconstrói os containers"
+    echo "  dev           Inicia o container de desenvolvimento"
+    echo "  lint          Executa verificação de código (linting)"
+    echo "  format        Formata o código automaticamente"
 }
 
 # Processar comando
@@ -55,8 +58,20 @@ case "$COMMAND" in
         docker-compose build --no-cache
         echo "Containers reconstruídos. Use './run.sh start' para iniciá-los."
         ;;
-
-
+    dev)
+        echo "Iniciando o container de desenvolvimento..."
+        docker-compose up -d docling-dev
+        echo "Container de desenvolvimento iniciado! Acesse http://localhost:8083/docs para a documentação da API."
+        echo "Use './run.sh lint' para verificar o código ou './run.sh format' para formatá-lo."
+        ;;
+    lint)
+        echo "Executando verificação de código (linting)..."
+        ./scripts/lint.sh --check
+        ;;
+    format)
+        echo "Formatando o código automaticamente..."
+        ./scripts/lint.sh --format
+        ;;
     *)
         show_usage
         exit 1

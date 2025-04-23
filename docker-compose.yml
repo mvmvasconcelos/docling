@@ -1,8 +1,11 @@
 version: '3.8'
 
 services:
+  # Serviço de produção
   docling:
-    build: .
+    build:
+      context: .
+      target: production
     container_name: docling
     ports:
       - "8082:8000"
@@ -12,3 +15,22 @@ services:
     env_file:
       - .env
     restart: unless-stopped
+
+  # Serviço de desenvolvimento com ferramentas de linting
+  docling-dev:
+    build:
+      context: .
+      target: development
+    container_name: docling-dev
+    ports:
+      - "8083:8000"
+    volumes:
+      - ./:/app
+      - /app/uploads
+      - /app/results
+    env_file:
+      - .env
+    environment:
+      - DEBUG=True
+    restart: "no"
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

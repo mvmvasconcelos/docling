@@ -11,12 +11,13 @@ from app.core.docling_adapter import DoclingAdapter
 # Inicializar o adaptador Docling
 docling_adapter = DoclingAdapter()
 
+
 def process_document(
     file_path: str,
     original_filename: str,
     extract_text: bool = True,
     extract_tables: bool = True,
-    extract_images: bool = False
+    extract_images: bool = False,
 ) -> Dict[str, Any]:
     """
     Processa um documento usando a biblioteca Docling.
@@ -44,7 +45,7 @@ def process_document(
             file_path=file_path,
             extract_text=extract_text,
             extract_tables=extract_tables,
-            extract_images=extract_images
+            extract_images=extract_images,
         )
 
         # Preparar informações do documento
@@ -55,7 +56,9 @@ def process_document(
             "file_type": os.path.splitext(original_filename)[1].lower()[1:],
             "file_size": os.path.getsize(file_path),
             "status": processing_result.get("status", "error"),
-            "message": processing_result.get("message", "Erro desconhecido durante o processamento")
+            "message": processing_result.get(
+                "message", "Erro desconhecido durante o processamento"
+            ),
         }
 
         # Adicionar conteúdo processado se disponível
@@ -86,6 +89,7 @@ def process_document(
         print(f"Erro ao processar documento: {str(e)}")
         raise
 
+
 def get_document_info(document_id: str) -> Optional[Dict[str, Any]]:
     """
     Obtém informações sobre um documento processado.
@@ -114,10 +118,13 @@ def get_document_info(document_id: str) -> Optional[Dict[str, Any]]:
         "metadata": metadata_path,
         "markdown": markdown_path if os.path.exists(markdown_path) else None,
         "html": html_path if os.path.exists(html_path) else None,
-        "original": os.path.join(result_dir, os.path.basename(document_info.get("original_filename", "")))
+        "original": os.path.join(
+            result_dir, os.path.basename(document_info.get("original_filename", ""))
+        ),
     }
 
     return document_info
+
 
 def list_documents(limit: int = 10, offset: int = 0) -> List[Dict[str, Any]]:
     """
@@ -140,7 +147,7 @@ def list_documents(limit: int = 10, offset: int = 0) -> List[Dict[str, Any]]:
         dirs.sort(key=lambda d: os.path.getmtime(os.path.join(RESULTS_DIR, d)), reverse=True)
 
         # Aplicar paginação
-        dirs = dirs[offset:offset+limit]
+        dirs = dirs[offset : offset + limit]
 
         # Obter metadados de cada documento
         for dir_name in dirs:
