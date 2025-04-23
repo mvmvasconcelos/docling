@@ -26,6 +26,8 @@ show_usage() {
     echo "  dev           Inicia o container de desenvolvimento"
     echo "  lint          Executa verificação de código (linting)"
     echo "  format        Formata o código automaticamente"
+    echo "  test          Executa os testes unitários"
+    echo "  coverage      Executa os testes e gera relatório de cobertura"
 }
 
 # Processar comando
@@ -71,6 +73,14 @@ case "$COMMAND" in
     format)
         echo "Formatando o código automaticamente..."
         ./scripts/lint.sh --format
+        ;;
+    test)
+        echo "Executando testes unitários..."
+        ./scripts/test.sh
+        ;;
+    coverage)
+        echo "Executando testes e gerando relatório de cobertura..."
+        ./scripts/test.sh --coverage
         ;;
     *)
         show_usage

@@ -1,0 +1,30 @@
+[run]
+source = app
+omit =
+    */tests/*
+    */venv/*
+    */env/*
+    */site-packages/*
+    */dist-packages/*
+    */migrations/*
+    */templates/*
+    */static/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    raise ImportError
+    except ImportError
+
+# Limites mínimos de cobertura
+fail_under = 60
+show_missing = True
+skip_covered = True
+# Nota: O limite atual é de 60%, mas a meta final é de 70% quando todos os testes estiverem implementados
+
+[html]
+directory = coverage_html_report

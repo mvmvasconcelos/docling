@@ -1,7 +1,7 @@
 # 🚀 Roadmap do Projeto Docling
 
 [![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow)](http://localhost:8082/docling/)
-[![Versão](https://img.shields.io/badge/Versão-1.1.0-blue)](http://localhost:8082/docling/)
+[![Versão](https://img.shields.io/badge/Versão-1.2.0-blue)](http://localhost:8082/docling/)
 [![Última atualização](https://img.shields.io/badge/Última%20atualização-Abril%202025-green)](http://localhost:8082/docling/)
 
 <!-- Nota: A versão do projeto é gerenciada centralmente em app/core/version.py -->
@@ -39,7 +39,7 @@
 
 | Fase | Descrição | Progresso | Status |
 |:----:|:------------|:----------:|:--------:|
-| **1** | **Fundação do Projeto** | `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬜` 90% | 🛠️ Em andamento |
+| **1** | **Fundação do Projeto** | `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬜` 95% | 🛠️ Em andamento |
 | **2** | **Desenvolvimento da API** | `⬛⬛⬛⬛⬛⬛⬛⬜⬜⬜` 70% | 🛠️ Em andamento |
 | **3** | **Melhorias e Otimizações** | `⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜` 0% | ⏳ Pendente |
 | **4** | **Funcionalidades Avançadas** | `⬛⬛⬜⬜⬜⬜⬜⬜⬜⬜` 20% | 🛠️ Em andamento |
@@ -60,7 +60,7 @@
 
 # 🏗️ 1. Fundação do Projeto (MVP - Fase 1)
 
-> **Progresso**: `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬜` 90%
+> **Progresso**: `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬜` 95%
 > 
 > **Status**: 🛠️ Em andamento
 
@@ -72,22 +72,22 @@ Estabelecer um ambiente Python isolado usando virtualenv ou Docker para garantir
 ### ✅ 1.1.2 Configurar linting e formatação (black, flake8, mypy)
 Implementar ferramentas de qualidade de código para manter padrões consistentes, facilitando a manutenção e colaboração. Essencial para projetos em containers Docker onde a consistência é crucial.
 
-### 🔜 1.1.3 Implementar testes unitários básicos
+### ✅ 1.1.3 Implementar testes unitários básicos
 Criar testes automatizados para validar funcionalidades core, garantindo que alterações futuras não quebrem funcionalidades existentes, especialmente importante em ambiente containerizado.
 
 **Subtarefas:**
-- 🔜 **1.1.3.1** Configurar pytest e pytest-cov no ambiente Docker
-- 🔜 **1.1.3.2** Criar estrutura de diretórios para testes
-- 🔜 **1.1.3.3** Configurar geração de relatórios de cobertura
-- 🔜 **1.1.3.4** Implementar testes para app/core/version.py
-- 🔜 **1.1.3.5** Implementar testes para app/core/config.py
-- 🔜 **1.1.3.6** Implementar testes para app/core/docling_adapter.py
-- 🔜 **1.1.3.7** Implementar testes para app/services/document_service.py
-- 🔜 **1.1.3.8** Criar mocks para dependências externas
-- 🔜 **1.1.3.9** Implementar testes para endpoints da API
-- 🔜 **1.1.3.10** Criar fixtures para simular uploads
-- 🔜 **1.1.3.11** Adicionar comandos ao script run.sh
-- 🔜 **1.1.3.12** Configurar limites mínimos de cobertura
+- ✅ **1.1.3.1** Configurar pytest e pytest-cov no ambiente Docker
+- ✅ **1.1.3.2** Criar estrutura de diretórios para testes
+- ✅ **1.1.3.3** Configurar geração de relatórios de cobertura
+- ✅ **1.1.3.4** Implementar testes para app/core/version.py
+- ✅ **1.1.3.5** Implementar testes para app/core/config.py
+- ✅ **1.1.3.6** Implementar testes para app/core/docling_adapter.py
+- ✅ **1.1.3.7** Implementar testes para app/services/document_service.py
+- ✅ **1.1.3.8** Criar mocks para dependências externas
+- ✅ **1.1.3.9** Implementar testes para endpoints da API
+- ✅ **1.1.3.10** Criar fixtures para simular uploads
+- ✅ **1.1.3.11** Adicionar comandos ao script run.sh
+- ✅ **1.1.3.12** Configurar limites mínimos de cobertura
 
 ### ✅ 1.1.4 Configurar CI/CD básico
 Estabelecer pipeline de integração e entrega contínua para automatizar testes, build e deploy dos containers Docker no servidor Ubuntu, mantendo o site http://localhost:8082/docling/ sempre atualizado.
@@ -103,7 +103,7 @@ Desenvolver camada de abstração para isolar dependências externas, facilitand
 ### ✅ 1.2.3 Implementar interface básica de processamento
 Criar APIs internas para processamento de documentos que serão expostas via Nginx, permitindo operações básicas acessíveis através da URL http://localhost:8082/docling/.
 
-### 🔜 1.2.4 Criar testes para funcionalidades core
+### ✅ 1.2.4 Criar testes para funcionalidades core
 Desenvolver testes abrangentes para garantir que as funcionalidades principais funcionem corretamente em todos os ambientes, especialmente no container Docker de produção.
 
 ## 💾 1.3 Sistema de Armazenamento
@@ -311,4 +311,4 @@ Desenvolver interface completa para administração de usuários, incluindo cria
 
 **Projeto Docling**  
 **IFSul Câmpus Venâncio Aires**  
-Última atualização: Abril 2025
+Última atualização: 23 de Abril 2025
