@@ -50,6 +50,8 @@ class DoclingAdapter:
         extract_tables: bool = True,
         extract_images: bool = False,
         extract_pages_as_images: bool = False,
+        apply_ocr: bool = False,
+        ocr_lang: str = "por",
     ) -> Dict[str, Any]:
         """
         Processa um documento usando bibliotecas específicas para cada tipo de arquivo.
@@ -60,6 +62,8 @@ class DoclingAdapter:
             extract_tables: Se deve extrair tabelas do documento
             extract_images: Se deve extrair imagens incorporadas do documento
             extract_pages_as_images: Se deve converter páginas inteiras em imagens (apenas para PDF)
+            apply_ocr: Se deve aplicar OCR nas imagens extraídas
+            ocr_lang: Idioma para OCR (por=português, eng=inglês, auto=detecção automática)
 
         Returns:
             Dicionário com os resultados do processamento
@@ -78,11 +82,13 @@ class DoclingAdapter:
             # Processar com base na extensão do arquivo
             if file_extension == ".pdf":
                 self._process_pdf(
-                    file_path, processing_result, extract_text, extract_tables, extract_images, extract_pages_as_images
+                    file_path, processing_result, extract_text, extract_tables, extract_images, extract_pages_as_images,
+                    apply_ocr, ocr_lang
                 )
             elif file_extension == ".docx":
                 self._process_docx(
-                    file_path, processing_result, extract_text, extract_tables, extract_images
+                    file_path, processing_result, extract_text, extract_tables, extract_images,
+                    apply_ocr, ocr_lang
                 )
             elif file_extension in [".xlsx", ".xls"]:
                 self._process_excel(file_path, processing_result, extract_text, extract_tables)
@@ -101,7 +107,7 @@ class DoclingAdapter:
                 "content": None,
             }
 
-    def _process_pdf(self, file_path, result, extract_text, extract_tables, extract_images, extract_pages_as_images=False):
+    def _process_pdf(self, file_path, result, extract_text, extract_tables, extract_images, extract_pages_as_images=False, apply_ocr=False, ocr_lang="por"):
         """
         Processa um arquivo PDF.
 
@@ -112,6 +118,8 @@ class DoclingAdapter:
             extract_tables: Se deve extrair tabelas
             extract_images: Se deve extrair imagens incorporadas
             extract_pages_as_images: Se deve converter páginas inteiras em imagens
+            apply_ocr: Se deve aplicar OCR nas imagens extraídas
+            ocr_lang: Idioma para OCR (por=português, eng=inglês, auto=detecção automática)
         """
         with open(file_path, "rb") as file:
             pdf_reader = PyPDF2.PdfReader(file)
@@ -162,10 +170,12 @@ class DoclingAdapter:
 
                 try:
                     print(f"Chamando extract_from_pdf com extract_pages={extract_pages_as_images}")
-                    images_result = self.image_extractor.extract_from_pdf(
+                    images_result = self.image_extractor.extract_images(
                         file_path=file_path,
-                        images_dir=images_dir,
-                        extract_pages=extract_pages_as_images
+                        document_id=document_id,
+                        extract_pages=extract_pages_as_images,
+                        apply_ocr=apply_ocr,
+                        ocr_lang=ocr_lang
                     )
 
                     print(f"Resultado da extração: {images_result}")
@@ -199,7 +209,7 @@ class DoclingAdapter:
                 ),
             })
 
-    def _process_docx(self, file_path, result, extract_text, extract_tables, extract_images):
+    def _process_docx(self, file_path, result, extract_text, extract_tables, extract_images, apply_ocr=False, ocr_lang="por"):
         """Processa um arquivo DOCX."""
         doc = docx.Document(file_path)
 
@@ -251,10 +261,12 @@ class DoclingAdapter:
                 return
 
             try:
-                images_result = self.image_extractor.extract_from_docx(
+                images_result = self.image_extractor.extract_images(
                     file_path=file_path,
-                    images_dir=images_dir,
-                    extract_pages=False
+                    document_id=document_id,
+                    extract_pages=False,
+                    apply_ocr=apply_ocr,
+                    ocr_lang=ocr_lang
                 )
 
                 if images_result.get("success"):

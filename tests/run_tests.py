@@ -15,20 +15,26 @@ sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 def run_tests(test_type=None, verbose=False):
     """
     Executa os testes do projeto.
-    
+
     Args:
         test_type: Tipo de teste a ser executado (unit, integration, all)
         verbose: Se True, exibe informações detalhadas sobre os testes
     """
     # Configurar o nível de verbosidade
     verbosity = 2 if verbose else 1
-    
+
     # Descobrir e executar os testes
     if test_type == "unit":
         print("Executando testes unitários...")
         test_suite = unittest.defaultTestLoader.discover(
             start_dir=os.path.dirname(__file__),
-            pattern="test_*_extractor.py"
+            pattern="test_*_service.py"
+        )
+    elif test_type == "ocr":
+        print("Executando testes de OCR...")
+        test_suite = unittest.defaultTestLoader.discover(
+            start_dir=os.path.join(os.path.dirname(__file__), "unit", "services"),
+            pattern="test_ocr_service.py"
         )
     elif test_type == "integration":
         print("Executando testes de integração...")
@@ -42,11 +48,11 @@ def run_tests(test_type=None, verbose=False):
             start_dir=os.path.dirname(__file__),
             pattern="test_*.py"
         )
-    
+
     # Executar os testes
     runner = unittest.TextTestRunner(verbosity=verbosity)
     result = runner.run(test_suite)
-    
+
     # Retornar código de saída
     return 0 if result.wasSuccessful() else 1
 
@@ -56,18 +62,18 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Executa os testes do projeto.")
     parser.add_argument(
         "--type",
-        choices=["unit", "integration", "all"],
+        choices=["unit", "integration", "ocr", "all"],
         default="all",
-        help="Tipo de teste a ser executado (unit, integration, all)"
+        help="Tipo de teste a ser executado (unit, integration, ocr, all)"
     )
     parser.add_argument(
         "--verbose",
         action="store_true",
         help="Exibe informações detalhadas sobre os testes"
     )
-    
+
     # Analisar argumentos
     args = parser.parse_args()
-    
+
     # Executar testes
     sys.exit(run_tests(args.type, args.verbose))

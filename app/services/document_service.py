@@ -19,6 +19,8 @@ def process_document(
     extract_tables: bool = True,
     extract_images: bool = False,
     extract_pages_as_images: bool = False,
+    apply_ocr: bool = False,
+    ocr_lang: str = "por",
 ) -> Dict[str, Any]:
     """
     Processa um documento usando a biblioteca Docling.
@@ -30,6 +32,8 @@ def process_document(
         extract_tables: Se deve extrair tabelas do documento
         extract_images: Se deve extrair imagens incorporadas do documento
         extract_pages_as_images: Se deve converter páginas inteiras em imagens (apenas para PDF)
+        apply_ocr: Se deve aplicar OCR nas imagens extraídas
+        ocr_lang: Idioma para OCR (por=português, eng=inglês, auto=detecção automática)
 
     Returns:
         Dicionário com os resultados do processamento
@@ -49,6 +53,8 @@ def process_document(
             extract_tables=extract_tables,
             extract_images=extract_images,
             extract_pages_as_images=extract_pages_as_images,
+            apply_ocr=apply_ocr,
+            ocr_lang=ocr_lang,
         )
 
         # Preparar informações do documento

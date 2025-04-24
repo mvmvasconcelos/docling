@@ -7,10 +7,10 @@ Este arquivo serve como fonte única de verdade para a versão do projeto.
 # - MAJOR: Mudanças incompatíveis com versões anteriores
 # - MINOR: Adição de funcionalidades mantendo compatibilidade
 # - PATCH: Correções de bugs mantendo compatibilidade
-VERSION = "1.4.1"
+VERSION = "1.4.9"
 
 # Fase de desenvolvimento (usado em badges e documentação)
-PHASE = "1.4.1"
+PHASE = "1.4.9"
 
 # Data da última atualização (formato: Mês YYYY)
 LAST_UPDATED = "Abril 2025"

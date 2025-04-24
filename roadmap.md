@@ -1,7 +1,7 @@
 # 🚀 Roadmap do Projeto Docling
 
 [![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow)](http://localhost:8082/docling/)
-[![Versão](https://img.shields.io/badge/Versão-1.4.1-blue)](http://localhost:8082/docling/)
+[![Versão](https://img.shields.io/badge/Versão-1.4.9-blue)](http://localhost:8082/docling/)
 [![Última atualização](https://img.shields.io/badge/Última%20atualização-Abril%202025-green)](http://localhost:8082/docling/)
 
 <!-- Nota: A versão do projeto é gerenciada centralmente em app/core/version.py -->
@@ -42,7 +42,7 @@
 | **1** | **Fundação do Projeto** | `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬜` 98% | 🛠️ Em andamento |
 | **2** | **Desenvolvimento da API** | `⬛⬛⬛⬛⬛⬛⬜⬜⬜⬜` 65% | 🛠️ Em andamento |
 | **3** | **Melhorias e Otimizações** | `⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜` 0% | ⏳ Pendente |
-| **4** | **Funcionalidades Avançadas** | `⬛⬛⬜⬜⬜⬜⬜⬜⬜⬜` 20% | 🛠️ Em andamento |
+| **4** | **Funcionalidades Avançadas** | `⬛⬛⬛⬜⬜⬜⬜⬜⬜⬜` 30% | 🛠️ Em andamento |
 | **5** | **Interface Web** | `⬛⬛⬛⬛⬛⬛⬛⬛⬜⬜` 85% | 🛠️ Em andamento |
 
 ---
@@ -316,14 +316,53 @@ Criar mecanismo para restaurar arquivos removidos acidentalmente, utilizando sna
 
 # 🧠 4. Funcionalidades Avançadas
 
-> **Progresso**: `⬛⬛⬜⬜⬜⬜⬜⬜⬜⬜` 20%
+> **Progresso**: `⬛⬛⬛⬜⬜⬜⬜⬜⬜⬜` 30%
 >
 > **Status**: 🛠️ Em andamento
 
 ## 🔬 4.1 Processamento Avançado
 
-### 🔜 4.1.1 Adicionar OCR para imagens
-Implementar reconhecimento óptico de caracteres usando Tesseract em container dedicado, permitindo extrair texto de imagens e PDFs escaneados.
+### ✅ 4.1.1 Adicionar OCR para imagens
+Implementar reconhecimento óptico de caracteres usando Tesseract, permitindo extrair texto de imagens e PDFs escaneados.
+
+**Subtarefas:**
+- ✅ **4.1.1.1** Integrar biblioteca pytesseract com o Tesseract OCR
+  - ✅ Adicionar pytesseract ao requirements.txt
+  - ✅ Verificar a instalação correta do Tesseract OCR no container
+  - ✅ Implementar testes para validar a integração
+  - ✅ Configurar suporte a múltiplos idiomas (português, inglês, espanhol, francês)
+
+- ✅ **4.1.1.2** Implementar OCR para imagens extraídas
+  - ✅ Desenvolver função para processar imagens individuais com OCR
+  - ✅ Criar sistema para armazenar e indexar o texto extraído
+  - ✅ Implementar detecção automática de orientação da imagem
+  - ✅ Adicionar suporte a diferentes formatos de imagem (PNG, JPEG, TIFF)
+
+- ✅ **4.1.1.3** Adicionar OCR para PDFs escaneados
+  - ✅ Desenvolver pipeline para converter páginas em imagens e aplicar OCR
+  - ✅ Implementar mesclagem de resultados de OCR com metadados do PDF
+  - ✅ Adicionar suporte a PDFs com camadas mistas (texto + imagens escaneadas)
+
+- ✅ **4.1.1.4** Criar API para controle de OCR
+  - ✅ Desenvolver parâmetros para configuração do OCR (idioma)
+  - ✅ Implementar endpoint para processar imagens existentes com OCR
+  - ✅ Criar opção para reprocessar documentos com diferentes configurações
+  - ✅ Adicionar documentação para os novos endpoints
+
+- ✅ **4.1.1.5** Implementar pós-processamento de texto OCR
+  - ✅ Criar sistema para melhorar formatação do texto extraído
+  - ✅ Implementar detecção básica de estruturas de texto
+
+- ✅ **4.1.1.6** Desenvolver testes e validação
+  - ✅ Implementar testes unitários para cada componente do sistema OCR
+  - ✅ Desenvolver testes de integração para o fluxo completo
+
+**Melhorias Futuras:**
+- 🔜 Implementar detecção automática de PDFs escaneados vs. digitais
+- 🔜 Desenvolver correção avançada de erros comuns de OCR
+- 🔜 Adicionar suporte a exportação em diferentes formatos (markdown, HTML)
+- 🔜 Criar conjunto de imagens de teste com diferentes características
+- 🔜 Adicionar benchmarks para avaliar qualidade e performance
 
 ### ✅ 4.1.2 Implementar extração de metadados
 Desenvolver funcionalidade para extrair e indexar metadados de documentos, facilitando organização e busca no sistema. Implementado para PDF, DOCX e Excel.
@@ -409,4 +448,4 @@ Desenvolver interface completa para administração de usuários, incluindo cria
 
 **Projeto Docling**
 **IFSul Câmpus Venâncio Aires**
-Última atualização: 25 de Abril 2025 - Conclusão da funcionalidade de extração de imagens e atualização do progresso
+Última atualização: 26 de Abril 2025 - Conclusão da funcionalidade de OCR para imagens e atualização do progresso

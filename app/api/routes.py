@@ -23,6 +23,8 @@ async def upload_and_process_document(
     extract_tables: bool = Form(True),
     extract_images: bool = Form(False),
     extract_pages_as_images: bool = Form(False),
+    apply_ocr: bool = Form(False),
+    ocr_lang: str = Form("por"),
 ):
     """
     Processa um documento enviado pelo usuário.
@@ -32,6 +34,8 @@ async def upload_and_process_document(
     - **extract_tables**: Se deve extrair tabelas do documento
     - **extract_images**: Se deve extrair imagens incorporadas no documento
     - **extract_pages_as_images**: Se deve converter páginas inteiras em imagens (apenas para PDF)
+    - **apply_ocr**: Se deve aplicar OCR nas imagens extraídas
+    - **ocr_lang**: Idioma para OCR (por=português, eng=inglês, auto=detecção automática)
     """
     # Verificar tipo de arquivo
     allowed_extensions = [".pdf", ".docx", ".xlsx"]
@@ -162,6 +166,8 @@ async def upload_and_process_document(
             extract_tables=extract_tables,
             extract_images=extract_images,
             extract_pages_as_images=extract_pages_as_images,
+            apply_ocr=apply_ocr,
+            ocr_lang=ocr_lang,
         )
 
         # Não precisamos mais limpar valores NaN, pois simplejson lida com isso automaticamente
@@ -400,6 +406,94 @@ async def get_document_image(document_id: str, image_id: str):
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Erro ao obter imagem do documento: {str(e)}"
+        )
+
+
+@router.post("/documents/{document_id}/images/{image_id}/ocr")
+async def process_image_ocr(
+    document_id: str,
+    image_id: str,
+    lang: str = Form("por"),
+):
+    """
+    Processa OCR em uma imagem específica de um documento.
+
+    - **document_id**: ID do documento
+    - **image_id**: ID ou nome do arquivo da imagem
+    - **lang**: Idioma para OCR (por=português, eng=inglês, auto=detecção automática)
+    """
+    try:
+        # Obter informações do documento
+        document_info = get_document_info(document_id)
+        if not document_info:
+            raise HTTPException(status_code=404, detail="Documento não encontrado")
+
+        # Verificar se o documento tem imagens
+        images = document_info.get("content", {}).get("images", [])
+        if not images:
+            raise HTTPException(status_code=404, detail="Documento não possui imagens")
+
+        # Procurar a imagem pelo ID ou nome do arquivo
+        image_info = None
+        for img in images:
+            if img.get("id") == image_id or img.get("filename") == image_id:
+                image_info = img
+                break
+
+        if not image_info:
+            raise HTTPException(status_code=404, detail=f"Imagem {image_id} não encontrada")
+
+        # Verificar se o arquivo existe
+        image_path = image_info.get("path")
+        if not image_path or not os.path.exists(image_path):
+            raise HTTPException(status_code=404, detail="Arquivo de imagem não encontrado")
+
+        # Importar o serviço de OCR
+        from app.services.ocr_service import OCRService
+        ocr_service = OCRService()
+
+        # Processar OCR na imagem
+        if lang == "auto":
+            # Detectar idioma automaticamente
+            detected_lang = ocr_service.detect_language(image_path)
+            ocr_result = ocr_service.process_image(image_path, lang=detected_lang)
+            ocr_result["detected_lang"] = detected_lang
+        else:
+            # Usar o idioma especificado
+            ocr_result = ocr_service.process_image(image_path, lang=lang)
+
+        # Adicionar informações da imagem ao resultado
+        ocr_result["image"] = {
+            "id": image_info.get("id"),
+            "filename": image_info.get("filename"),
+            "format": image_info.get("format"),
+            "width": image_info.get("width"),
+            "height": image_info.get("height"),
+        }
+
+        # Se o OCR foi bem-sucedido, salvar o texto em um arquivo
+        if ocr_result.get("success") and ocr_result.get("text"):
+            # Criar diretório para resultados de OCR
+            result_dir = os.path.join(RESULTS_DIR, document_id)
+            ocr_dir = os.path.join(result_dir, "ocr")
+            os.makedirs(ocr_dir, exist_ok=True)
+
+            # Salvar texto extraído em arquivo
+            text_filename = f"{os.path.splitext(os.path.basename(image_path))[0]}.txt"
+            text_path = os.path.join(ocr_dir, text_filename)
+
+            with open(text_path, "w", encoding="utf-8") as f:
+                f.write(ocr_result["text"])
+
+            ocr_result["text_file"] = text_path
+
+        return ocr_result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao processar OCR na imagem: {str(e)}"
         )
 
 

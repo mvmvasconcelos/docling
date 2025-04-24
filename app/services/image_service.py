@@ -17,6 +17,7 @@ import pdf2image
 from pdf2image.exceptions import PDFInfoNotInstalledError, PDFPageCountError, PDFSyntaxError
 
 from app.core.config import RESULTS_DIR
+from app.services.ocr_service import OCRService
 
 # Configurar logger
 logger = logging.getLogger(__name__)
@@ -36,7 +37,10 @@ class ImageExtractor:
             'pptx': self.extract_from_pptx,
         }
 
-    def extract_images(self, file_path: str, document_id: str, extract_pages: bool = False) -> Dict[str, Any]:
+        # Inicializar o serviço de OCR
+        self.ocr_service = OCRService()
+
+    def extract_images(self, file_path: str, document_id: str, extract_pages: bool = False, apply_ocr: bool = False, ocr_lang: str = "por") -> Dict[str, Any]:
         """
         Extrai imagens de um documento.
 
@@ -44,6 +48,8 @@ class ImageExtractor:
             file_path: Caminho para o arquivo
             document_id: ID do documento
             extract_pages: Se True, também extrai páginas como imagens (para PDFs)
+            apply_ocr: Se True, aplica OCR nas imagens extraídas
+            ocr_lang: Idioma para OCR (por=português, eng=inglês, etc)
 
         Returns:
             Dicionário com informações sobre as imagens extraídas
@@ -76,6 +82,48 @@ class ImageExtractor:
             # Extrair imagens usando o método apropriado
             extract_method = self.supported_formats[file_ext]
             result = extract_method(file_path, images_dir, extract_pages)
+
+            # Aplicar OCR nas imagens extraídas se solicitado
+            if apply_ocr and result["success"] and result["images"]:
+                logger.info(f"Aplicando OCR nas imagens extraídas com idioma: {ocr_lang}")
+
+                # Criar diretório para resultados de OCR
+                ocr_dir = os.path.join(os.path.dirname(images_dir), "ocr")
+                os.makedirs(ocr_dir, exist_ok=True)
+
+                # Processar OCR para cada imagem
+                for image_info in result["images"]:
+                    image_path = image_info["path"]
+
+                    # Detectar idioma automaticamente se solicitado
+                    lang = ocr_lang
+                    if lang == "auto":
+                        lang = self.ocr_service.detect_language(image_path)
+                        logger.info(f"Idioma detectado para {os.path.basename(image_path)}: {lang}")
+
+                    # Aplicar OCR
+                    ocr_result = self.ocr_service.process_image(image_path, lang=lang)
+
+                    # Adicionar resultado do OCR às informações da imagem
+                    image_info["ocr"] = {
+                        "success": ocr_result["success"],
+                        "text": ocr_result.get("text", ""),
+                        "lang": lang
+                    }
+
+                    # Salvar texto extraído em arquivo
+                    if ocr_result["success"] and ocr_result.get("text"):
+                        text_filename = f"{os.path.splitext(os.path.basename(image_path))[0]}.txt"
+                        text_path = os.path.join(ocr_dir, text_filename)
+
+                        with open(text_path, "w", encoding="utf-8") as f:
+                            f.write(ocr_result["text"])
+
+                        image_info["ocr"]["text_file"] = text_path
+
+                # Adicionar informações de OCR ao resultado
+                result["ocr_applied"] = True
+                result["ocr_lang"] = ocr_lang
 
             return result
         except Exception as e:

@@ -9,6 +9,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libmagic1 \
     poppler-utils \
     tesseract-ocr \
+    tesseract-ocr-por \
+    tesseract-ocr-eng \
+    tesseract-ocr-spa \
+    tesseract-ocr-fra \
     libreoffice \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*

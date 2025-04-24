@@ -3,7 +3,7 @@
 # 📚 Serviço Docling
 
 [![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow)](http://localhost:8082/docling/)
-[![Versão](https://img.shields.io/badge/Versão-1.4.1-blue)](http://localhost:8082/docling/)
+[![Versão](https://img.shields.io/badge/Versão-1.4.9-blue)](http://localhost:8082/docling/)
 [![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?logo=docker&logoColor=white)](http://localhost:8082/docling/)
 [![Python](https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white)](http://localhost:8082/docling/)
 
@@ -41,6 +41,7 @@ O serviço está disponível online em:
 | ✅ Extração de Texto       | ✅ Visualização no Browser | ✅ Respostas JSON      |
 | ✅ Extração de Tabelas     | ✅ Download de Resultados  | ✅ Upload Multipart    |
 | ✅ Extração de Imagens    | 🕐 Edição de Templates    | 🕐 Processamento Assíncrono |
+| ✅ OCR para Imagens       | ✅ Detecção de Idioma      | ✅ Processamento em Lote |
 
 </div>
 
@@ -76,6 +77,46 @@ curl -X POST "http://localhost:8082/docling/api/process" \
   -F "extract_images=true" \
   -F "extract_pages_as_images=true"
 ```
+
+### 🔍 Reconhecimento Óptico de Caracteres (OCR)
+
+O Docling oferece funcionalidades avançadas de OCR para extrair texto de imagens e documentos escaneados:
+
+- **OCR para Imagens Extraídas**: Extrai texto de imagens incorporadas em documentos
+- **OCR para Documentos Escaneados**: Processa PDFs escaneados para extrair seu conteúdo textual
+- **Detecção Automática de Idioma**: Identifica automaticamente o idioma do texto nas imagens
+- **Suporte a Múltiplos Idiomas**: Inclui português, inglês, espanhol e francês por padrão
+- **Pós-processamento de Texto**: Melhora a qualidade do texto extraído
+- **Armazenamento de Resultados**: Salva o texto extraído em arquivos separados
+
+Para usar o OCR via API:
+
+```bash
+# Processar documento com OCR em português
+curl -X POST "http://localhost:8082/docling/api/process" \
+  -F "file=@documento_escaneado.pdf" \
+  -F "extract_images=true" \
+  -F "apply_ocr=true" \
+  -F "ocr_lang=por"
+
+# Processar documento com detecção automática de idioma
+curl -X POST "http://localhost:8082/docling/api/process" \
+  -F "file=@documento_escaneado.pdf" \
+  -F "extract_images=true" \
+  -F "apply_ocr=true" \
+  -F "ocr_lang=auto"
+
+# Aplicar OCR em uma imagem específica
+curl -X POST "http://localhost:8082/docling/api/documents/{document_id}/images/{image_id}/ocr" \
+  -F "lang=por"
+```
+
+O OCR suporta os seguintes idiomas por padrão:
+- `por`: Português
+- `eng`: Inglês
+- `spa`: Espanhol
+- `fra`: Francês
+- `auto`: Detecção automática de idioma
 
 ## 💻 Requisitos Técnicos
 
@@ -122,6 +163,9 @@ O comando `./run.sh test` executa os testes dentro do container:
 # Executar apenas testes de integração
 ./run.sh test integration
 
+# Executar apenas testes de OCR
+./run.sh test ocr
+
 # Executar testes com saída detalhada
 ./run.sh test all --verbose
 
@@ -133,13 +177,15 @@ O sistema de testes oferece as seguintes opções:
 
 - **unit**: Executa apenas testes unitários
 - **integration**: Executa apenas testes de integração
+- **ocr**: Executa apenas testes relacionados ao OCR
 - **all**: Executa todos os testes (padrão)
 - **--verbose**: Exibe informações detalhadas sobre cada teste
 
 Os testes incluem:
 
-- **Testes Unitários**: Verificam componentes individuais como o `ImageExtractor`
+- **Testes Unitários**: Verificam componentes individuais como o `ImageExtractor` e o `OCRService`
 - **Testes de Integração**: Verificam o fluxo completo da API e a interação entre componentes
+- **Testes de OCR**: Verificam a funcionalidade de reconhecimento óptico de caracteres
 
 Os relatórios de cobertura são gerados no diretório `coverage_html_report/` e podem ser visualizados em um navegador.
 
@@ -154,6 +200,8 @@ O serviço já implementa as seguintes funcionalidades:
 - **Interface Web**: Upload, visualização e gerenciamento de documentos
 - **Metadados**: Extração de informações como título, número de páginas, etc.
 - **Extração de Imagens**: Extração de imagens de PDFs com opção para converter páginas em imagens
+- **OCR (Reconhecimento Óptico de Caracteres)**: Extração de texto de imagens e documentos escaneados
+- **Detecção de Idioma**: Identificação automática do idioma do texto em imagens
 
 Consulte o [Roadmap](roadmap.md) para ver o plano de desenvolvimento futuro.
 
@@ -190,7 +238,8 @@ A API REST do Docling é completamente documentada e fácil de usar:
 │   │   └── version.py  # Controle de versão centralizado
 │   ├── services/       # Serviços de processamento
 │   │   ├── document_service.py # Serviço para processamento de documentos
-│   │   └── image_service.py    # Serviço para processamento de imagens
+│   │   ├── image_service.py    # Serviço para processamento de imagens
+│   │   └── ocr_service.py      # Serviço para OCR e extração de texto de imagens
 │   ├── static/         # Arquivos estáticos (CSS, JS)
 │   ├── templates/      # Templates HTML
 │   │   └── index.html  # Página principal da interface web
@@ -267,6 +316,8 @@ Este projeto utiliza as seguintes bibliotecas para processamento de documentos:
 - [openpyxl](https://openpyxl.readthedocs.io/) - Para processamento de planilhas Excel
 - [FastAPI](https://fastapi.tiangolo.com/) - Framework web para a API
 - [Jinja2](https://jinja.palletsprojects.com/) - Engine de templates
+- [pytesseract](https://github.com/madmaze/pytesseract) - Interface Python para o Tesseract OCR
+- [Pillow](https://python-pillow.org/) - Biblioteca para processamento de imagens
 
 ## 🔒 Licença
 
