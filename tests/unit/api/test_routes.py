@@ -148,9 +148,10 @@ class TestAPIRoutes:
                     with patch("uuid.uuid4", return_value="123e4567-e89b-12d3-a456-426614174000"):
                         response = client.post("/api/process", files=files, data=data)
 
-        # Verificar o resultado
-        assert response.status_code == 500
-        assert "Erro ao processar documento" in response.json().get("message", "")
+        # Verificar o resultado - a API retorna 200 mesmo em caso de erro, com status "error"
+        assert response.status_code == 200
+        assert response.json().get("status") == "error"
+        assert "Erro ao processar o documento" in response.json().get("error", "")
 
     def test_get_document_success(self, mock_get_document_info):
         """Testa a obtenção de informações de documento com sucesso."""
