@@ -113,7 +113,7 @@ As políticas de retenção podem ser personalizadas através de variáveis de a
 Para executar a limpeza manual de arquivos temporários:
 
 ```bash
-python scripts/clean_temp_files.py [opções]
+python3 scripts/clean_temp_files.py [opções]
 ```
 
 Opções disponíveis:
@@ -126,13 +126,14 @@ Opções disponíveis:
 - `--uploads-only`: Limpa apenas arquivos de upload
 - `--results-only`: Limpa apenas resultados de processamento
 - `--temp-files-only`: Limpa apenas arquivos temporários
+- `--all`: Limpa todos os arquivos das pastas uploads e results, independentemente da idade
 
 ### 5.2. Monitoramento de Espaço em Disco
 
 Para verificar o espaço em disco disponível:
 
 ```bash
-python scripts/monitor_disk_space.py [opções]
+python3 scripts/monitor_disk_space.py [opções]
 ```
 
 Opções disponíveis:
@@ -172,7 +173,7 @@ O sistema de monitoramento de disco pode enviar alertas por e-mail quando o espa
 Para configurar o envio de alertas por e-mail, edite as configurações no script `monitor_disk_space.py` ou forneça os parâmetros na linha de comando:
 
 ```bash
-python scripts/monitor_disk_space.py --smtp-server smtp.example.com --smtp-port 587 --smtp-user usuario --smtp-password senha --from-email docling@example.com --to-emails admin@example.com
+python3 scripts/monitor_disk_space.py --smtp-server smtp.example.com --smtp-port 587 --smtp-user usuario --smtp-password senha --from-email docling@example.com --to-emails admin@example.com
 ```
 
 ## 7. Logs e Auditoria
@@ -222,3 +223,50 @@ pytest tests/unit/utils/test_file_cleaner.py
 ```
 
 Para contribuir com o desenvolvimento, consulte o código-fonte e os testes para entender a implementação.
+
+## 11. Melhorias Futuras
+
+### 11.1. Sistema de Quarentena
+
+Implementar um período de "quarentena" antes da remoção definitiva, permitindo recuperação de arquivos removidos acidentalmente.
+
+**Benefícios**:
+- Maior segurança contra remoções acidentais
+- Possibilidade de recuperação de dados importantes
+- Transição gradual para remoção definitiva
+
+### 11.2. Interface Web para Estatísticas
+
+Desenvolver uma interface web para visualização de estatísticas de limpeza e gerenciamento de políticas de retenção.
+
+**Benefícios**:
+- Monitoramento visual do uso de espaço em disco
+- Configuração simplificada de políticas de retenção
+- Histórico de operações de limpeza
+
+### 11.3. Integração com Prometheus/Grafana
+
+Integrar o sistema de limpeza com ferramentas de monitoramento como Prometheus e Grafana para visualização avançada de métricas.
+
+**Benefícios**:
+- Monitoramento em tempo real do espaço em disco
+- Alertas configuráveis para situações críticas
+- Visualização de tendências de uso ao longo do tempo
+
+### 11.4. Backup Seletivo
+
+Implementar um sistema de backup seletivo para arquivos importantes antes da remoção.
+
+**Benefícios**:
+- Preservação de dados críticos
+- Redução do risco de perda de informações importantes
+- Flexibilidade na definição de critérios para backup
+
+### 11.5. Sistema de Recuperação
+
+Desenvolver um mecanismo para restaurar arquivos removidos acidentalmente.
+
+**Benefícios**:
+- Recuperação de dados em caso de erro
+- Maior confiança no sistema de limpeza
+- Proteção contra falhas humanas ou do sistema

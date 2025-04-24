@@ -115,6 +115,12 @@ def parse_args() -> argparse.Namespace:
         help="Limpa apenas arquivos temporários",
     )
 
+    types_group.add_argument(
+        "--all",
+        action="store_true",
+        help="Limpa todos os arquivos das pastas uploads e results, independentemente da idade",
+    )
+
     return parser.parse_args()
 
 
@@ -126,7 +132,16 @@ def main() -> None:
     args = parse_args()
 
     # Configurar logging
-    setup_logging(args.verbose)
+    try:
+        setup_logging(args.verbose)
+    except PermissionError:
+        print("Aviso: Não foi possível configurar o logging devido a permissões insuficientes.")
+        print("O script continuará funcionando, mas não serão gerados logs.")
+        # Configurar logging básico para console apenas
+        logging.basicConfig(
+            level=logging.DEBUG if args.verbose else logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
 
     # Configurar políticas de retenção personalizadas
     custom_policies = {}
@@ -162,7 +177,19 @@ def main() -> None:
     cleaner = FileCleaner(dry_run=args.dry_run)
 
     # Executar limpeza específica ou completa
-    if args.uploads_only:
+    if args.all:
+        # Limpeza de todos os arquivos, independentemente da idade
+        print("\n⚠️  ATENÇÃO: Removendo TODOS os arquivos, independentemente da idade! ⚠️")
+        print("Esta operação não pode ser desfeita.")
+
+        if not args.dry_run:
+            confirmation = input("Digite 'CONFIRMAR' para prosseguir: ")
+            if confirmation != "CONFIRMAR":
+                print("Operação cancelada pelo usuário.")
+                sys.exit(0)
+
+        cleaner.clean_all_regardless_of_age()
+    elif args.uploads_only:
         old_uploads = cleaner.identify_old_uploads()
         cleaner.remove_files(old_uploads, "uploads")
     elif args.results_only:
@@ -172,7 +199,7 @@ def main() -> None:
         old_temp_files = cleaner.identify_temp_files()
         cleaner.remove_files(old_temp_files, "temp_files")
     else:
-        # Limpeza completa
+        # Limpeza normal (apenas arquivos obsoletos)
         cleaner.clean_all()
 
     # Exibir estatísticas
@@ -180,6 +207,18 @@ def main() -> None:
 
     print("\n=== Estatísticas de Limpeza ===")
     print(f"Modo: {'Simulação (dry-run)' if args.dry_run else 'Remoção real'}")
+
+    if args.all:
+        print("Tipo: Limpeza completa (todos os arquivos)")
+    elif args.uploads_only:
+        print("Tipo: Apenas arquivos de upload")
+    elif args.results_only:
+        print("Tipo: Apenas resultados de processamento")
+    elif args.temp_files_only:
+        print("Tipo: Apenas arquivos temporários")
+    else:
+        print("Tipo: Limpeza padrão (apenas arquivos obsoletos)")
+
     print(f"Uploads: {stats['uploads_removed']}/{stats['uploads_identified']} removidos")
     print(f"Resultados: {stats['results_removed']}/{stats['results_identified']} removidos")
     print(f"Arquivos temporários: {stats['temp_files_removed']}/{stats['temp_files_identified']} removidos")

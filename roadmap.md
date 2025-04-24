@@ -1,7 +1,7 @@
 # 🚀 Roadmap do Projeto Docling
 
 [![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow)](http://localhost:8082/docling/)
-[![Versão](https://img.shields.io/badge/Versão-1.3.3-blue)](http://localhost:8082/docling/)
+[![Versão](https://img.shields.io/badge/Versão-1.3.4-blue)](http://localhost:8082/docling/)
 [![Última atualização](https://img.shields.io/badge/Última%20atualização-Abril%202025-green)](http://localhost:8082/docling/)
 
 <!-- Nota: A versão do projeto é gerenciada centralmente em app/core/version.py -->
@@ -40,7 +40,7 @@
 | Fase | Descrição | Progresso | Status |
 |:----:|:------------|:----------:|:--------:|
 | **1** | **Fundação do Projeto** | `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬜` 98% | 🛠️ Em andamento |
-| **2** | **Desenvolvimento da API** | `⬛⬛⬛⬛⬛⬛⬛⬜⬜⬜` 70% | 🛠️ Em andamento |
+| **2** | **Desenvolvimento da API** | `⬛⬛⬛⬛⬛⬛⬜⬜⬜⬜` 58% | 🛠️ Em andamento |
 | **3** | **Melhorias e Otimizações** | `⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜` 0% | ⏳ Pendente |
 | **4** | **Funcionalidades Avançadas** | `⬛⬛⬜⬜⬜⬜⬜⬜⬜⬜` 20% | 🛠️ Em andamento |
 | **5** | **Interface Web** | `⬛⬛⬛⬛⬛⬛⬛⬛⬜⬜` 85% | 🛠️ Em andamento |
@@ -153,7 +153,7 @@ Criar sistema de logs detalhados para rastrear operações de arquivo, facilitan
 
 # 🌐 2. Desenvolvimento da API (MVP - Fase 2)
 
-> **Progresso**: `⬛⬛⬛⬛⬛⬛⬛⬜⬜⬜` 70%
+> **Progresso**: `⬛⬛⬛⬛⬛⬛⬜⬜⬜⬜` 58%
 >
 > **Status**: 🛠️ Em andamento
 

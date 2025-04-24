@@ -1,5 +1,5 @@
 import os
-import json
+import simplejson as json
 import uuid
 from datetime import datetime
 from typing import Dict, Any, Optional, List
@@ -65,6 +65,33 @@ def process_document(
         if processing_result.get("content"):
             document_info["content"] = processing_result["content"]
 
+        # Não precisamos mais da função clean_json_values, pois simplejson lida com NaN automaticamente
+        # Apenas garantir que não há valores problemáticos
+        try:
+            # Testar se o objeto pode ser serializado
+            json.dumps(document_info)
+        except Exception as e:
+            print(f"Aviso: Erro ao serializar JSON: {str(e)}")
+            # Se não puder, aplicar uma limpeza básica
+            import math
+            import numpy as np
+
+            def clean_json_values(obj):
+                if isinstance(obj, dict):
+                    return {k: clean_json_values(v) for k, v in obj.items()}
+                elif isinstance(obj, list):
+                    return [clean_json_values(item) for item in obj]
+                elif isinstance(obj, (float, np.float64, np.float32)) and (math.isnan(obj) or math.isinf(obj)):
+                    return None
+                elif isinstance(obj, np.integer):
+                    return int(obj)
+                elif isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                else:
+                    return obj
+
+            document_info = clean_json_values(document_info)
+
         # Salvar metadados do documento
         with open(os.path.join(result_dir, "metadata.json"), "w", encoding="utf-8") as f:
             json.dump(document_info, f, ensure_ascii=False, indent=2)
@@ -110,6 +137,33 @@ def get_document_info(document_id: str) -> Optional[Dict[str, Any]]:
     with open(metadata_path, "r", encoding="utf-8") as f:
         document_info = json.load(f)
 
+    # Não precisamos mais da função clean_json_values, pois simplejson lida com NaN automaticamente
+    # Apenas garantir que não há valores problemáticos
+    try:
+        # Testar se o objeto pode ser serializado
+        json.dumps(document_info)
+    except Exception as e:
+        print(f"Aviso: Erro ao serializar JSON: {str(e)}")
+        # Se não puder, aplicar uma limpeza básica
+        import math
+        import numpy as np
+
+        def clean_json_values(obj):
+            if isinstance(obj, dict):
+                return {k: clean_json_values(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [clean_json_values(item) for item in obj]
+            elif isinstance(obj, (float, np.float64, np.float32)) and (math.isnan(obj) or math.isinf(obj)):
+                return None
+            elif isinstance(obj, np.integer):
+                return int(obj)
+            elif isinstance(obj, np.ndarray):
+                return obj.tolist()
+            else:
+                return obj
+
+        document_info = clean_json_values(document_info)
+
     # Adicionar caminhos para arquivos de conteúdo se existirem
     markdown_path = os.path.join(result_dir, "content.md")
     html_path = os.path.join(result_dir, "content.html")
@@ -124,6 +178,38 @@ def get_document_info(document_id: str) -> Optional[Dict[str, Any]]:
     }
 
     return document_info
+
+
+def save_document_result(document_id: str, result: Dict[str, Any], file_path: str, original_filename: str) -> None:
+    """
+    Salva os resultados do processamento de um documento.
+
+    Args:
+        document_id: ID do documento
+        result: Resultado do processamento
+        file_path: Caminho para o arquivo original
+        original_filename: Nome original do arquivo
+    """
+    # Criar diretório para os resultados
+    result_dir = os.path.join(RESULTS_DIR, document_id)
+    os.makedirs(result_dir, exist_ok=True)
+
+    # Salvar metadados do documento
+    with open(os.path.join(result_dir, "metadata.json"), "w", encoding="utf-8") as f:
+        json.dump(result, f, ensure_ascii=False, indent=2)
+
+    # Salvar conteúdo em markdown se disponível
+    if result.get("content", {}).get("markdown"):
+        with open(os.path.join(result_dir, "content.md"), "w", encoding="utf-8") as f:
+            f.write(result["content"]["markdown"])
+
+    # Salvar conteúdo em HTML se disponível
+    if result.get("content", {}).get("html"):
+        with open(os.path.join(result_dir, "content.html"), "w", encoding="utf-8") as f:
+            f.write(result["content"]["html"])
+
+    # Copiar o arquivo original para o diretório de resultados
+    shutil.copy2(file_path, os.path.join(result_dir, os.path.basename(file_path)))
 
 
 def list_documents(limit: int = 10, offset: int = 0) -> List[Dict[str, Any]]:

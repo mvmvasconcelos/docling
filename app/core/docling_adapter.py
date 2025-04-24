@@ -159,6 +159,9 @@ class DoclingAdapter:
 
     def _process_excel(self, file_path, result, extract_text, extract_tables):
         """Processa um arquivo Excel."""
+        import simplejson as json
+        import numpy as np
+
         # Usar pandas para ler o Excel
         excel_file = pd.ExcelFile(file_path)
         sheet_names = excel_file.sheet_names
@@ -167,15 +170,42 @@ class DoclingAdapter:
         if extract_tables:
             tables = []
             for sheet_name in sheet_names:
-                df = pd.read_excel(file_path, sheet_name=sheet_name)
-                tables.append(
-                    {
+                try:
+                    df = pd.read_excel(file_path, sheet_name=sheet_name)
+
+                    # Substituir NaN por None para compatibilidade com JSON
+                    df = df.replace({np.nan: None})
+
+                    # Extrair cabeçalhos e dados
+                    headers = df.columns.tolist()
+
+                    # Converter cada linha para lista, substituindo NaN por None
+                    data = []
+                    for _, row in df.iterrows():
+                        row_data = []
+                        for col in headers:
+                            val = row[col]
+                            if pd.isna(val):
+                                row_data.append(None)
+                            else:
+                                row_data.append(val)
+                        data.append(row_data)
+
+                    tables.append({
                         "page": 1,  # Excel não tem conceito de página
                         "sheet": sheet_name,
-                        "data": df.values.tolist(),
-                        "headers": df.columns.tolist(),
-                    }
-                )
+                        "data": data,
+                        "headers": headers,
+                    })
+                except Exception as e:
+                    # Em caso de erro, adicionar informação de erro
+                    tables.append({
+                        "page": 1,
+                        "sheet": sheet_name,
+                        "error": str(e),
+                        "headers": [],
+                        "data": []
+                    })
 
             result["content"]["tables"] = tables
 
@@ -183,9 +213,14 @@ class DoclingAdapter:
         if extract_text:
             text = ""
             for sheet_name in sheet_names:
-                df = pd.read_excel(file_path, sheet_name=sheet_name)
-                text += f"Sheet: {sheet_name}\n\n"
-                text += df.to_string(index=False) + "\n\n"
+                try:
+                    df = pd.read_excel(file_path, sheet_name=sheet_name)
+                    # Substituir NaN por strings vazias para exibição de texto
+                    df = df.fillna("")
+                    text += f"Sheet: {sheet_name}\n\n"
+                    text += df.to_string(index=False, na_rep="") + "\n\n"
+                except Exception as e:
+                    text += f"Sheet: {sheet_name}\n\nErro ao processar: {str(e)}\n\n"
 
             result["content"]["text"] = text
             result["content"]["markdown"] = text  # Texto simples como markdown

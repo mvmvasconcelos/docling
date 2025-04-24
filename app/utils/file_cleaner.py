@@ -19,7 +19,14 @@ from app.core.retention_policy import retention_policy
 from app.utils.log_config import configure_file_cleaner_logging
 
 # Configurar logger
-configure_file_cleaner_logging(console=False)
+try:
+    configure_file_cleaner_logging(console=False)
+except PermissionError:
+    # Configurar logging básico para console apenas
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
 logger = logging.getLogger(__name__)
 
 
@@ -338,6 +345,83 @@ class FileCleaner:
         self.stats["timestamp"] = datetime.now().isoformat()
 
         logger.info(f"Limpeza concluída: {total_removed}/{total_identified} arquivos removidos, {self._format_size(total_bytes_freed)} liberados")
+
+        return self.stats
+
+    def clean_all_regardless_of_age(self) -> Dict[str, Any]:
+        """
+        Remove todos os arquivos das pastas uploads e results, independentemente da idade.
+
+        Returns:
+            Estatísticas da operação de limpeza
+        """
+        logger.info(f"Iniciando limpeza completa de todos os arquivos (modo {'simulação' if self.dry_run else 'real'})")
+        logger.warning("ATENÇÃO: Removendo todos os arquivos, independentemente da idade!")
+
+        all_uploads = []
+        all_results = []
+
+        # Listar todos os arquivos no diretório de uploads
+        try:
+            for filename in os.listdir(self.upload_dir):
+                file_path = os.path.join(self.upload_dir, filename)
+                if os.path.isfile(file_path):
+                    all_uploads.append(file_path)
+                    self.stats["uploads_identified"] += 1
+
+            logger.info(f"Identificados {len(all_uploads)} arquivos no diretório de uploads")
+        except Exception as e:
+            logger.error(f"Erro ao listar arquivos de upload: {str(e)}")
+
+        # Listar todos os diretórios no diretório de resultados
+        try:
+            for result_id in os.listdir(self.results_dir):
+                result_dir = os.path.join(self.results_dir, result_id)
+                if os.path.isdir(result_dir):
+                    all_results.append(result_dir)
+                    self.stats["results_identified"] += 1
+
+            logger.info(f"Identificados {len(all_results)} diretórios no diretório de resultados")
+        except Exception as e:
+            logger.error(f"Erro ao listar diretórios de resultados: {str(e)}")
+
+        # Identificar arquivos temporários normalmente
+        old_temp_files = self.identify_temp_files()
+
+        # Remover todos os arquivos
+        self.remove_files(all_uploads, "uploads")
+        self.remove_files(all_results, "results")
+        self.remove_files(old_temp_files, "temp_files")
+
+        # Calcular estatísticas totais
+        total_identified = (
+            self.stats["uploads_identified"] +
+            self.stats["results_identified"] +
+            self.stats["temp_files_identified"]
+        )
+
+        total_removed = (
+            self.stats["uploads_removed"] +
+            self.stats["results_removed"] +
+            self.stats["temp_files_removed"]
+        )
+
+        total_bytes_freed = (
+            self.stats["uploads_bytes_freed"] +
+            self.stats["results_bytes_freed"] +
+            self.stats["temp_files_bytes_freed"]
+        )
+
+        # Adicionar estatísticas totais
+        self.stats["total_identified"] = total_identified
+        self.stats["total_removed"] = total_removed
+        self.stats["total_bytes_freed"] = total_bytes_freed
+        self.stats["human_readable_freed"] = self._format_size(total_bytes_freed)
+        self.stats["dry_run"] = self.dry_run
+        self.stats["timestamp"] = datetime.now().isoformat()
+        self.stats["all_files"] = True
+
+        logger.info(f"Limpeza completa concluída: {total_removed}/{total_identified} arquivos removidos, {self._format_size(total_bytes_freed)} liberados")
 
         return self.stats
 
