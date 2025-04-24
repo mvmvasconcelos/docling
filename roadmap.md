@@ -1,7 +1,7 @@
 # 🚀 Roadmap do Projeto Docling
 
 [![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow)](http://localhost:8082/docling/)
-[![Versão](https://img.shields.io/badge/Versão-1.3.2-blue)](http://localhost:8082/docling/)
+[![Versão](https://img.shields.io/badge/Versão-1.3.3-blue)](http://localhost:8082/docling/)
 [![Última atualização](https://img.shields.io/badge/Última%20atualização-Abril%202025-green)](http://localhost:8082/docling/)
 
 <!-- Nota: A versão do projeto é gerenciada centralmente em app/core/version.py -->
@@ -61,7 +61,7 @@
 # 🏗️ 1. Fundação do Projeto (MVP - Fase 1)
 
 > **Progresso**: `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬜` 98%
-> 
+>
 > **Status**: 🛠️ Em andamento
 
 ## 🔧 1.1 Configuração do Ambiente de Desenvolvimento
@@ -154,7 +154,7 @@ Criar sistema de logs detalhados para rastrear operações de arquivo, facilitan
 # 🌐 2. Desenvolvimento da API (MVP - Fase 2)
 
 > **Progresso**: `⬛⬛⬛⬛⬛⬛⬛⬜⬜⬜` 70%
-> 
+>
 > **Status**: 🛠️ Em andamento
 
 ## 🔌 2.1 Endpoints Básicos
@@ -202,8 +202,8 @@ Elaborar documentação detalhada sobre casos de uso típicos, com exemplos prá
 # ⚡ 3. Melhorias e Otimizações (Pós-MVP)
 
 > **Progresso**: `⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜` 0%
-> 
-> **Status**: ⏳ Pendente
+>
+> **Status**: ⏳ Planejado
 
 ## 🚀 3.1 Performance
 
@@ -247,10 +247,27 @@ Implementar controle de acesso baseado em papéis (RBAC) para diferentes funcion
 ### 🔜 3.3.4 Implementar sanitização de arquivos
 Desenvolver verificação avançada de segurança para arquivos enviados, protegendo o sistema contra malware e ataques via upload de documentos maliciosos.
 
+## 🧹 3.4 Gerenciamento Avançado de Arquivos
+
+### 🔜 3.4.1 Implementar sistema de quarentena para arquivos
+Desenvolver mecanismo para mover arquivos obsoletos para área de quarentena antes da remoção definitiva, permitindo recuperação em caso de exclusão acidental.
+
+### 🔜 3.4.2 Criar interface web para estatísticas de limpeza
+Implementar dashboard para visualização de estatísticas do sistema de limpeza automática, incluindo histórico de operações e espaço recuperado.
+
+### 🔜 3.4.3 Integrar com Prometheus/Grafana para monitoramento
+Desenvolver exportadores de métricas para o sistema de limpeza, permitindo monitoramento avançado de espaço em disco e operações de arquivo via Grafana.
+
+### 🔜 3.4.4 Adicionar backup seletivo antes da remoção
+Implementar sistema para criar backups automáticos de arquivos importantes antes da remoção, baseado em regras configuráveis de seleção.
+
+### 🔜 3.4.5 Desenvolver sistema de recuperação de arquivos
+Criar mecanismo para restaurar arquivos removidos acidentalmente, utilizando snapshots incrementais e logs detalhados de operações.
+
 # 🧠 4. Funcionalidades Avançadas
 
 > **Progresso**: `⬛⬛⬜⬜⬜⬜⬜⬜⬜⬜` 20%
-> 
+>
 > **Status**: 🛠️ Em andamento
 
 ## 🔬 4.1 Processamento Avançado
@@ -298,7 +315,7 @@ Criar rotinas de backup para dados críticos, garantindo que informações impor
 # 💻 5. Interface Web (Opcional)
 
 > **Progresso**: `⬛⬛⬛⬛⬛⬛⬛⬛⬜⬜` 85%
-> 
+>
 > **Status**: 🛠️ Em andamento
 
 ## 🖥️ 5.1 Frontend Básico
@@ -340,6 +357,6 @@ Desenvolver interface completa para administração de usuários, incluindo cria
 
 ---
 
-**Projeto Docling**  
-**IFSul Câmpus Venâncio Aires**  
-Última atualização: 24 de Abril 2025
+**Projeto Docling**
+**IFSul Câmpus Venâncio Aires**
+Última atualização: 24 de Abril 2025 - Sistema de Limpeza Automática Concluído e Melhorias Futuras Planejadas

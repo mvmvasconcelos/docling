@@ -156,19 +156,34 @@ class TestFileCleaner:
         recent_files = create_test_files("uploads", 3, age_days=0)  # Arquivos recentes
         old_files = create_test_files("uploads", 2, age_days=2)  # Arquivos antigos
 
+        # Criar uma política de retenção específica para o teste
+        test_policy = RetentionPolicy({
+            "uploads": {
+                "max_age_days": 1,  # Manter por 1 dia
+                "remove_after_processing": False,  # Não remover após processamento
+                "exempt_extensions": [],  # Sem extensões isentas
+            }
+        })
+
         with patch("app.utils.file_cleaner.UPLOAD_DIR", temp_dirs["upload_dir"]), \
              patch("app.utils.file_cleaner.RESULTS_DIR", temp_dirs["results_dir"]), \
-             patch("app.utils.file_cleaner.retention_policy", mock_retention_policy):
+             patch("app.utils.file_cleaner.retention_policy", test_policy), \
+             patch("app.utils.file_cleaner.FileCleaner._get_processed_original_files", return_value=set()):
 
             cleaner = FileCleaner(dry_run=True)
             old_uploads = cleaner.identify_old_uploads()
 
             # Verificar se apenas os arquivos antigos foram identificados
-            assert len(old_uploads) == 2
-            for file_path in old_files:
-                assert file_path in old_uploads
-            for file_path in recent_files:
-                assert file_path not in old_uploads
+            assert len(old_uploads) == 2, f"Esperava 2 arquivos antigos, encontrou {len(old_uploads)}: {old_uploads}"
+
+            # Verificar se todos os arquivos antigos foram identificados
+            old_paths = set(old_files)
+            found_paths = set(old_uploads)
+            assert old_paths.issubset(found_paths), f"Nem todos os arquivos antigos foram identificados. Esperava {old_paths}, encontrou {found_paths}"
+
+            # Verificar se nenhum arquivo recente foi identificado como antigo
+            recent_paths = set(recent_files)
+            assert recent_paths.isdisjoint(found_paths), f"Arquivos recentes foram incorretamente identificados como antigos: {recent_paths.intersection(found_paths)}"
 
     def test_identify_old_results(self, temp_dirs, create_test_files, mock_retention_policy):
         """Testa a identificação de resultados obsoletos."""
@@ -176,19 +191,32 @@ class TestFileCleaner:
         recent_results = create_test_files("results", 3, age_days=1)  # Resultados recentes
         old_results = create_test_files("results", 2, age_days=10)  # Resultados antigos
 
+        # Modificar a política de retenção para o teste
+        test_policy = RetentionPolicy({
+            "results": {
+                "max_age_days": 7,  # Manter por 7 dias
+                "consider_last_access": True,
+            }
+        })
+
         with patch("app.utils.file_cleaner.UPLOAD_DIR", temp_dirs["upload_dir"]), \
              patch("app.utils.file_cleaner.RESULTS_DIR", temp_dirs["results_dir"]), \
-             patch("app.utils.file_cleaner.retention_policy", mock_retention_policy):
+             patch("app.utils.file_cleaner.retention_policy", test_policy):
 
             cleaner = FileCleaner(dry_run=True)
             old_results_found = cleaner.identify_old_results()
 
             # Verificar se apenas os resultados antigos foram identificados
-            assert len(old_results_found) == 2
-            for result_dir in old_results:
-                assert result_dir in old_results_found
-            for result_dir in recent_results:
-                assert result_dir not in old_results_found
+            assert len(old_results_found) == 2, f"Esperava 2 resultados antigos, encontrou {len(old_results_found)}"
+
+            # Verificar se todos os resultados antigos foram identificados
+            old_paths = set(old_results)
+            found_paths = set(old_results_found)
+            assert old_paths.issubset(found_paths), f"Nem todos os resultados antigos foram identificados. Esperava {old_paths}, encontrou {found_paths}"
+
+            # Verificar se nenhum resultado recente foi identificado como antigo
+            recent_paths = set(recent_results)
+            assert recent_paths.isdisjoint(found_paths), f"Resultados recentes foram incorretamente identificados como antigos: {recent_paths.intersection(found_paths)}"
 
     def test_remove_files_dry_run(self, temp_dirs, create_test_files, mock_retention_policy):
         """Testa a remoção de arquivos em modo dry-run."""
@@ -232,34 +260,54 @@ class TestFileCleaner:
         old_results = create_test_files("results", 2, age_days=10)
         recent_results = create_test_files("results", 1, age_days=1)
 
+        # Modificar a política de retenção para o teste
+        test_policy = RetentionPolicy({
+            "uploads": {
+                "max_age_days": 1,
+                "remove_after_processing": True,
+            },
+            "results": {
+                "max_age_days": 7,  # Manter por 7 dias
+                "consider_last_access": True,
+            }
+        })
+
         with patch("app.utils.file_cleaner.UPLOAD_DIR", temp_dirs["upload_dir"]), \
              patch("app.utils.file_cleaner.RESULTS_DIR", temp_dirs["results_dir"]), \
-             patch("app.utils.file_cleaner.retention_policy", mock_retention_policy), \
-             patch("app.utils.file_cleaner.FileCleaner.identify_temp_files", return_value=[]):
+             patch("app.utils.file_cleaner.retention_policy", test_policy), \
+             patch("app.utils.file_cleaner.FileCleaner.identify_temp_files", return_value=[]), \
+             patch("app.utils.file_cleaner.FileCleaner._get_processed_original_files", return_value=set()):
 
+            # Testar em modo dry-run
             cleaner = FileCleaner(dry_run=True)
             stats = cleaner.clean_all()
 
             # Verificar estatísticas
-            assert stats["uploads_identified"] == 2
-            assert stats["results_identified"] == 2
-            assert stats["total_identified"] == 4
+            assert stats["uploads_identified"] == 2, f"Esperava 2 uploads identificados, encontrou {stats['uploads_identified']}"
+            assert stats["results_identified"] == 2, f"Esperava 2 resultados identificados, encontrou {stats['results_identified']}"
+            assert stats["total_identified"] == 4, f"Esperava 4 arquivos identificados no total, encontrou {stats['total_identified']}"
 
             # Verificar que os arquivos ainda existem (dry-run)
             for file_path in old_uploads + old_results + recent_uploads + recent_results:
-                assert os.path.exists(file_path)
+                assert os.path.exists(file_path), f"Arquivo deveria existir em modo dry-run: {file_path}"
 
             # Testar remoção real
             cleaner = FileCleaner(dry_run=False)
             stats = cleaner.clean_all()
 
             # Verificar que os arquivos antigos foram removidos
-            for file_path in old_uploads + old_results:
-                assert not os.path.exists(file_path)
+            for file_path in old_uploads:
+                assert not os.path.exists(file_path), f"Arquivo antigo deveria ter sido removido: {file_path}"
+
+            for file_path in old_results:
+                assert not os.path.exists(file_path), f"Resultado antigo deveria ter sido removido: {file_path}"
 
             # Verificar que os arquivos recentes ainda existem
-            for file_path in recent_uploads + recent_results:
-                assert os.path.exists(file_path)
+            for file_path in recent_uploads:
+                assert os.path.exists(file_path), f"Arquivo recente não deveria ter sido removido: {file_path}"
+
+            for file_path in recent_results:
+                assert os.path.exists(file_path), f"Resultado recente não deveria ter sido removido: {file_path}"
 
     def test_format_size(self):
         """Testa a formatação de tamanho em bytes."""
