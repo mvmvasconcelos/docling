@@ -21,4 +21,5 @@ markdown>=3.5.0        # Para conversão para markdown
 python-magic>=0.4.27  # Para detecção de tipos MIME
 requests>=2.31.0      # Para download de documentos por URL
 pillow>=10.0.0        # Para processamento de imagens
+pdf2image>=1.16.3     # Para converter PDF em imagens
 simplejson>=3.19.2    # Para lidar com valores NaN em JSON

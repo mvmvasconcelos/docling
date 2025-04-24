@@ -78,12 +78,16 @@ case "$COMMAND" in
         ./scripts/lint.sh --format
         ;;
     test)
-        echo "Executando testes unitários..."
-        ./scripts/test.sh
+        echo "Executando testes..."
+        if [ -z "$2" ]; then
+            docker exec docling-dev python tests/run_tests.py
+        else
+            docker exec docling-dev python tests/run_tests.py --type $2 --verbose
+        fi
         ;;
     coverage)
         echo "Executando testes e gerando relatório de cobertura..."
-        ./scripts/test.sh --coverage
+        docker exec docling-dev python -m pytest --cov=app tests/ --cov-report=term --cov-report=html
         ;;
     clean)
         echo "Limpando arquivos temporários..."

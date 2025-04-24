@@ -169,6 +169,14 @@
         .download-btn:hover {
             background-color: #0b7dda;
         }
+
+        /* Estilos para checkboxes */
+        .checkbox-group {
+            margin-bottom: 8px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 8px;
+        }
     </style>
 </head>
 <body>
@@ -184,6 +192,25 @@
                 <div class="form-group">
                     <label for="document">Selecione um documento (PDF, DOCX, XLSX):</label>
                     <input type="file" id="document" name="file" accept=".pdf,.docx,.xlsx" required>
+                </div>
+                <div class="form-group">
+                    <label>Opções de processamento:</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="extract_text" name="extract_text" checked>
+                        <label for="extract_text">Extrair texto</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="extract_tables" name="extract_tables" checked>
+                        <label for="extract_tables">Extrair tabelas</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="extract_images" name="extract_images">
+                        <label for="extract_images">Extrair imagens</label>
+                    </div>
+                    <div class="checkbox-group" id="extract_pages_container" style="margin-left: 20px; display: none;">
+                        <input type="checkbox" id="extract_pages_as_images" name="extract_pages_as_images">
+                        <label for="extract_pages_as_images">Converter páginas em imagens (apenas PDF)</label>
+                    </div>
                 </div>
                 <div class="form-group">
                     <button type="submit" id="submit-btn">Enviar para Processamento</button>
@@ -295,11 +322,40 @@
                 addLog(`Visualização do documento ${documentId} configurada`, 'info');
             }
 
+            // Configurar interação entre checkboxes
+            const extractImagesCheckbox = document.getElementById('extract_images');
+            const extractPagesContainer = document.getElementById('extract_pages_container');
+            const extractPagesCheckbox = document.getElementById('extract_pages_as_images');
+            const fileInput = document.getElementById('document');
+
+            // Mostrar/esconder opção de converter páginas quando "Extrair imagens" é marcado/desmarcado
+            extractImagesCheckbox.addEventListener('change', function() {
+                extractPagesContainer.style.display = this.checked ? 'block' : 'none';
+                // Se desmarcar "Extrair imagens", também desmarcar "Converter páginas"
+                if (!this.checked) {
+                    extractPagesCheckbox.checked = false;
+                }
+            });
+
+            // Verificar se o arquivo é PDF e mostrar/esconder opção de converter páginas
+            fileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                    // Mostrar opção de converter páginas apenas para PDFs
+                    if (fileExt === '.pdf' && extractImagesCheckbox.checked) {
+                        extractPagesContainer.style.display = 'block';
+                    } else {
+                        extractPagesContainer.style.display = 'none';
+                        extractPagesCheckbox.checked = false;
+                    }
+                }
+            });
+
             // Manipulador de envio do formulário
             uploadForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
-                const fileInput = document.getElementById('document');
                 const file = fileInput.files[0];
 
                 if (!file) {
@@ -315,12 +371,19 @@
                     return;
                 }
 
+                // Obter valores dos checkboxes
+                const extractText = document.getElementById('extract_text').checked;
+                const extractTables = document.getElementById('extract_tables').checked;
+                const extractImages = document.getElementById('extract_images').checked;
+                const extractPagesAsImages = document.getElementById('extract_pages_as_images').checked;
+
                 // Preparar formulário para envio
                 const formData = new FormData();
                 formData.append('file', file);
-                formData.append('extract_text', 'true');
-                formData.append('extract_tables', 'true');
-                formData.append('extract_images', 'false');
+                formData.append('extract_text', extractText.toString());
+                formData.append('extract_tables', extractTables.toString());
+                formData.append('extract_images', extractImages.toString());
+                formData.append('extract_pages_as_images', extractPagesAsImages.toString());
 
                 // Mostrar loading e desabilitar botão
                 submitBtn.disabled = true;

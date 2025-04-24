@@ -18,6 +18,7 @@ def process_document(
     extract_text: bool = True,
     extract_tables: bool = True,
     extract_images: bool = False,
+    extract_pages_as_images: bool = False,
 ) -> Dict[str, Any]:
     """
     Processa um documento usando a biblioteca Docling.
@@ -27,7 +28,8 @@ def process_document(
         original_filename: Nome original do arquivo
         extract_text: Se deve extrair texto do documento
         extract_tables: Se deve extrair tabelas do documento
-        extract_images: Se deve extrair imagens do documento
+        extract_images: Se deve extrair imagens incorporadas do documento
+        extract_pages_as_images: Se deve converter páginas inteiras em imagens (apenas para PDF)
 
     Returns:
         Dicionário com os resultados do processamento
@@ -46,6 +48,7 @@ def process_document(
             extract_text=extract_text,
             extract_tables=extract_tables,
             extract_images=extract_images,
+            extract_pages_as_images=extract_pages_as_images,
         )
 
         # Preparar informações do documento
@@ -114,6 +117,11 @@ def process_document(
     except Exception as e:
         # Registrar erro e repassar a exceção
         print(f"Erro ao processar documento: {str(e)}")
+        print(f"Tipo de erro: {type(e)}")
+        print(f"Erro detalhado: {repr(e)}")
+        import traceback
+        print("Stack trace:")
+        traceback.print_exc()  # Imprimir o stack trace completo
         raise
 
 

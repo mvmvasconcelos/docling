@@ -22,6 +22,7 @@ async def upload_and_process_document(
     extract_text: bool = Form(True),
     extract_tables: bool = Form(True),
     extract_images: bool = Form(False),
+    extract_pages_as_images: bool = Form(False),
 ):
     """
     Processa um documento enviado pelo usuário.
@@ -29,7 +30,8 @@ async def upload_and_process_document(
     - **file**: Arquivo a ser processado (PDF, DOCX, XLSX)
     - **extract_text**: Se deve extrair texto do documento
     - **extract_tables**: Se deve extrair tabelas do documento
-    - **extract_images**: Se deve extrair imagens do documento
+    - **extract_images**: Se deve extrair imagens incorporadas no documento
+    - **extract_pages_as_images**: Se deve converter páginas inteiras em imagens (apenas para PDF)
     """
     # Verificar tipo de arquivo
     allowed_extensions = [".pdf", ".docx", ".xlsx"]
@@ -159,6 +161,7 @@ async def upload_and_process_document(
             extract_text=extract_text,
             extract_tables=extract_tables,
             extract_images=extract_images,
+            extract_pages_as_images=extract_pages_as_images,
         )
 
         # Não precisamos mais limpar valores NaN, pois simplejson lida com isso automaticamente
@@ -168,6 +171,8 @@ async def upload_and_process_document(
         error_id = str(uuid.uuid4())
         error_message = f"Erro ao processar o documento: {str(e)}"
         print(f"Erro {error_id}: {error_message}")
+        import traceback
+        traceback.print_exc()  # Imprimir o stack trace completo
 
         # Em caso de erro, remover o arquivo
         if os.path.exists(file_path):
@@ -313,6 +318,89 @@ async def health_check():
     Verifica o status do serviço.
     """
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+
+@router.get("/documents/{document_id}/images")
+async def list_document_images(document_id: str):
+    """
+    Lista todas as imagens extraídas de um documento.
+
+    - **document_id**: ID do documento
+    """
+    try:
+        document_info = get_document_info(document_id)
+        if not document_info:
+            raise HTTPException(status_code=404, detail="Documento não encontrado")
+
+        # Verificar se o documento tem imagens
+        images = document_info.get("content", {}).get("images", [])
+
+        if not images:
+            return {
+                "document_id": document_id,
+                "count": 0,
+                "images": []
+            }
+
+        return {
+            "document_id": document_id,
+            "count": len(images),
+            "images": images
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao listar imagens do documento: {str(e)}"
+        )
+
+
+@router.get("/documents/{document_id}/images/{image_id}")
+async def get_document_image(document_id: str, image_id: str):
+    """
+    Obtém uma imagem específica extraída de um documento.
+
+    - **document_id**: ID do documento
+    - **image_id**: ID ou nome do arquivo da imagem
+    """
+    try:
+        document_info = get_document_info(document_id)
+        if not document_info:
+            raise HTTPException(status_code=404, detail="Documento não encontrado")
+
+        # Verificar se o documento tem imagens
+        images = document_info.get("content", {}).get("images", [])
+
+        if not images:
+            raise HTTPException(status_code=404, detail="Documento não possui imagens")
+
+        # Procurar a imagem pelo ID ou nome do arquivo
+        image_info = None
+        for img in images:
+            if img.get("id") == image_id or img.get("filename") == image_id:
+                image_info = img
+                break
+
+        if not image_info:
+            raise HTTPException(status_code=404, detail=f"Imagem {image_id} não encontrada")
+
+        # Verificar se o arquivo existe
+        image_path = image_info.get("path")
+        if not image_path or not os.path.exists(image_path):
+            raise HTTPException(status_code=404, detail="Arquivo de imagem não encontrado")
+
+        # Retornar a imagem
+        return FileResponse(
+            path=image_path,
+            media_type=f"image/{image_info.get('format', 'png').lower()}",
+            filename=image_info.get("filename")
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao obter imagem do documento: {str(e)}"
+        )
 
 
 @router.get("/version")

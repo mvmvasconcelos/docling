@@ -3,7 +3,7 @@
 # 📚 Serviço Docling
 
 [![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow)](http://localhost:8082/docling/)
-[![Versão](https://img.shields.io/badge/Versão-1.3.4-blue)](http://localhost:8082/docling/)
+[![Versão](https://img.shields.io/badge/Versão-1.4.0-blue)](http://localhost:8082/docling/)
 [![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?logo=docker&logoColor=white)](http://localhost:8082/docling/)
 [![Python](https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white)](http://localhost:8082/docling/)
 
@@ -40,7 +40,7 @@ O serviço está disponível online em:
 | ✅ XLSX                     | ✅ HTML                  | ✅ Endpoints Intuitivos |
 | ✅ Extração de Texto       | ✅ Visualização no Browser | ✅ Respostas JSON      |
 | ✅ Extração de Tabelas     | ✅ Download de Resultados  | ✅ Upload Multipart    |
-| 🕐 Extração de Imagens    | 🕐 Edição de Templates    | 🕐 Processamento Assíncrono |
+| ✅ Extração de Imagens    | 🕐 Edição de Templates    | 🕐 Processamento Assíncrono |
 
 </div>
 
@@ -52,6 +52,31 @@ O serviço está disponível online em:
 - **Arquitetura Modular**: Fácil extensão e personalização
 - **Containerização**: Isolamento e facilidade de implantação via Docker
 
+### 🖼️ Extração de Imagens
+
+O Docling oferece funcionalidades para extração de imagens de documentos:
+
+- **Extração de Imagens Incorporadas**: Extrai imagens contidas em documentos PDF, DOCX e PPTX
+- **Conversão de Páginas em Imagens**: Opcionalmente converte páginas inteiras de PDFs em imagens
+- **Controle Granular**: Permite escolher entre extrair apenas imagens incorporadas ou também converter páginas
+- **Metadados de Imagens**: Armazena informações como dimensões, formato e tamanho de cada imagem
+- **Organização Automática**: Imagens são armazenadas em uma estrutura organizada de diretórios
+
+Para usar a extração de imagens via API:
+
+```bash
+# Extrair apenas imagens incorporadas
+curl -X POST "http://localhost:8082/docling/api/process" \
+  -F "file=@documento.pdf" \
+  -F "extract_images=true"
+
+# Extrair imagens incorporadas e converter páginas em imagens
+curl -X POST "http://localhost:8082/docling/api/process" \
+  -F "file=@documento.pdf" \
+  -F "extract_images=true" \
+  -F "extract_pages_as_images=true"
+```
+
 ## 💻 Requisitos Técnicos
 
 - **Docker**: 20.10.0 ou superior
@@ -59,21 +84,9 @@ O serviço está disponível online em:
 - **Python**: 3.10+ (apenas para desenvolvimento local)
 - **Navegador**: Chrome, Firefox, Edge ou Safari recentes
 
-## 💻 Instalação e Execução
+## 💻 Execução
 
 O serviço Docling é executado exclusivamente via Docker para garantir isolamento e facilidade de implantação.
-
-### 📦 Instalação Rápida
-
-```bash
-# Clonar o repositório
-git clone https://github.com/seu-usuario/docling-service.git
-cd docling-service
-
-# Construir e iniciar os containers
-./run.sh build
-./run.sh start
-```
 
 ### 🔧 Comandos de Gerenciamento
 
@@ -86,18 +99,61 @@ O script `run.sh` fornece comandos intuitivos para gerenciar o serviço:
 ./run.sh status        # Verificar status dos containers
 ./run.sh logs          # Ver logs em tempo real
 ./run.sh build         # Reconstruir os containers (após alterações)
+./run.sh dev           # Iniciar o container de desenvolvimento
+./run.sh lint          # Executar verificação de código (linting)
+./run.sh format        # Formatar o código automaticamente
+./run.sh test          # Executar testes unitários
+./run.sh coverage      # Executar testes e gerar relatório de cobertura
+./run.sh clean         # Limpar arquivos temporários
+./run.sh monitor       # Monitorar espaço em disco
 ```
+
+#### 🧪 Executando Testes
+
+O comando `./run.sh test` executa os testes dentro do container:
+
+```bash
+# Executar todos os testes (unitários e integração)
+./run.sh test
+
+# Executar apenas testes unitários
+./run.sh test unit
+
+# Executar apenas testes de integração
+./run.sh test integration
+
+# Executar testes com saída detalhada
+./run.sh test all --verbose
+
+# Executar testes e gerar relatório de cobertura
+./run.sh coverage
+```
+
+O sistema de testes oferece as seguintes opções:
+
+- **unit**: Executa apenas testes unitários
+- **integration**: Executa apenas testes de integração
+- **all**: Executa todos os testes (padrão)
+- **--verbose**: Exibe informações detalhadas sobre cada teste
+
+Os testes incluem:
+
+- **Testes Unitários**: Verificam componentes individuais como o `ImageExtractor`
+- **Testes de Integração**: Verificam o fluxo completo da API e a interação entre componentes
+
+Os relatórios de cobertura são gerados no diretório `coverage_html_report/` e podem ser visualizados em um navegador.
 
 ### 📈 Estado Atual do Projeto
 
 O serviço já implementa as seguintes funcionalidades:
 
 - **Processamento de Documentos**: PDF, DOCX e XLSX
-- **Extração de Conteúdo**: Texto e tabelas
+- **Extração de Conteúdo**: Texto, tabelas e imagens
 - **Conversão de Formatos**: Markdown, HTML e texto plano
 - **API REST Completa**: Upload, processamento e download de documentos
 - **Interface Web**: Upload, visualização e gerenciamento de documentos
 - **Metadados**: Extração de informações como título, número de páginas, etc.
+- **Extração de Imagens**: Extração de imagens de PDFs com opção para converter páginas em imagens
 
 Consulte o [Roadmap](roadmap.md) para ver o plano de desenvolvimento futuro.
 
@@ -125,21 +181,59 @@ A API REST do Docling é completamente documentada e fácil de usar:
 ```
 .
 ├── app/                # Código da aplicação
-│   ├── api/            # Rotas da API
+│   ├── api/            # Rotas da API REST
+│   │   └── routes.py   # Definição dos endpoints
 │   ├── core/           # Configurações e funcionalidades centrais
-│   │   └── docling_adapter.py  # Adaptador para processamento de documentos
-│   ├── models/         # Modelos de dados
+│   │   ├── config.py   # Configurações da aplicação
+│   │   ├── docling_adapter.py  # Adaptador para processamento de documentos
+│   │   ├── retention_policy.py # Políticas de retenção de documentos
+│   │   └── version.py  # Controle de versão centralizado
 │   ├── services/       # Serviços de processamento
+│   │   ├── document_service.py # Serviço para processamento de documentos
+│   │   └── image_service.py    # Serviço para processamento de imagens
 │   ├── static/         # Arquivos estáticos (CSS, JS)
 │   ├── templates/      # Templates HTML
-│   └── utils/          # Utilitários
+│   │   └── index.html  # Página principal da interface web
+│   ├── utils/          # Utilitários
+│   │   ├── disk_monitor.py # Monitoramento de espaço em disco
+│   │   ├── file_cleaner.py # Limpeza de arquivos temporários
+│   │   └── log_config.py   # Configuração de logs
+│   ├── tests/          # Testes da aplicação
+│   └── main.py         # Ponto de entrada da aplicação
+├── docs/               # Documentação adicional
+│   └── file_cleaner.md # Documentação sobre limpeza de arquivos
+├── logs/               # Arquivos de log
+│   ├── disk_monitor.log
+│   └── file_cleaner.log
 ├── nginx/              # Configuração do Nginx
+│   ├── docling.conf    # Configuração específica para o Docling
+│   └── setup-nginx.sh  # Script para configuração do Nginx
+├── scripts/            # Scripts utilitários
+│   ├── clean_temp_files.py  # Script para limpeza de arquivos temporários
+│   ├── monitor_disk_space.py # Script para monitoramento de disco
+│   ├── setup_cron_job.sh    # Configuração de tarefas agendadas
+│   ├── update_badges.py     # Atualização de badges no README
+│   └── update_version.py    # Atualização da versão do projeto
+├── tests/              # Testes automáticos
+│   ├── fixtures/       # Fixtures para testes
+│   │   ├── mock_dependencies.py
+│   │   └── mock_uploads.py
+│   ├── integration/    # Testes de integração
+│   └── unit/           # Testes unitários
+│       └── test_main.py
 ├── uploads/            # Diretório para upload de arquivos
+│   └── test_temp/      # Arquivos temporários de teste
 ├── results/            # Diretório para resultados processados
 ├── Dockerfile          # Configuração do Docker
 ├── docker-compose.yml  # Configuração do Docker Compose
-├── requirements.txt    # Dependências Python
-└── roadmap.md          # Plano de desenvolvimento
+├── requirements.txt    # Dependências Python principais
+├── requirements-dev.txt # Dependências para desenvolvimento
+├── mypy.ini           # Configuração do verificador de tipos mypy
+├── pytest.ini         # Configuração do framework de teste pytest
+├── DEPLOY.md          # Instruções de implantação
+├── LICENSE            # Arquivo de licença
+├── roadmap.md         # Plano de desenvolvimento futuro
+└── run.sh             # Script principal para gerenciar o serviço
 ```
 
 ## 🔰 Versionamento

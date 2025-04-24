@@ -1,7 +1,7 @@
 # 🚀 Roadmap do Projeto Docling
 
 [![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow)](http://localhost:8082/docling/)
-[![Versão](https://img.shields.io/badge/Versão-1.3.4-blue)](http://localhost:8082/docling/)
+[![Versão](https://img.shields.io/badge/Versão-1.4.0-blue)](http://localhost:8082/docling/)
 [![Última atualização](https://img.shields.io/badge/Última%20atualização-Abril%202025-green)](http://localhost:8082/docling/)
 
 <!-- Nota: A versão do projeto é gerenciada centralmente em app/core/version.py -->
@@ -40,7 +40,7 @@
 | Fase | Descrição | Progresso | Status |
 |:----:|:------------|:----------:|:--------:|
 | **1** | **Fundação do Projeto** | `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬜` 98% | 🛠️ Em andamento |
-| **2** | **Desenvolvimento da API** | `⬛⬛⬛⬛⬛⬛⬜⬜⬜⬜` 58% | 🛠️ Em andamento |
+| **2** | **Desenvolvimento da API** | `⬛⬛⬛⬛⬛⬛⬜⬜⬜⬜` 65% | 🛠️ Em andamento |
 | **3** | **Melhorias e Otimizações** | `⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜` 0% | ⏳ Pendente |
 | **4** | **Funcionalidades Avançadas** | `⬛⬛⬜⬜⬜⬜⬜⬜⬜⬜` 20% | 🛠️ Em andamento |
 | **5** | **Interface Web** | `⬛⬛⬛⬛⬛⬛⬛⬛⬜⬜` 85% | 🛠️ Em andamento |
@@ -153,7 +153,7 @@ Criar sistema de logs detalhados para rastrear operações de arquivo, facilitan
 
 # 🌐 2. Desenvolvimento da API (MVP - Fase 2)
 
-> **Progresso**: `⬛⬛⬛⬛⬛⬛⬜⬜⬜⬜` 58%
+> **Progresso**: `⬛⬛⬛⬛⬛⬛⬜⬜⬜⬜` 65%
 >
 > **Status**: 🛠️ Em andamento
 
@@ -179,8 +179,58 @@ Desenvolver funcionalidade para extrair conteúdo textual de documentos comuns (
 ### ✅ 2.2.2 Adicionar extração de tabelas
 Criar sistema para identificar e extrair dados tabulares de documentos, utilizando bibliotecas compatíveis com o ambiente Linux do container. Implementado para documentos DOCX e planilhas Excel.
 
-### 🔜 2.2.3 Desenvolver extração de imagens
+### ✅ 2.2.3 Desenvolver extração de imagens
 Implementar funcionalidade para extrair e processar imagens de documentos, com suporte adequado às bibliotecas gráficas necessárias no container Docker.
+
+**Subtarefas:**
+- ✅ **2.2.3.1** Integrar bibliotecas de processamento de imagens (Pillow, pdf2image)
+  - Adicionar dependências ao requirements.txt
+  - Configurar suporte a bibliotecas gráficas no container Docker
+  - Implementar testes para verificar a correta instalação das bibliotecas
+
+- ✅ **2.2.3.2** Implementar extração de imagens de documentos PDF
+  - Desenvolver função para identificar e extrair imagens incorporadas em PDFs
+  - Criar sistema para converter páginas de PDF em imagens quando necessário
+  - Implementar metadados para imagens extraídas (página de origem, posição, tamanho)
+  - Adicionar suporte a diferentes formatos de compressão em PDFs
+
+- ✅ **2.2.3.7** Desenvolver API para acesso às imagens extraídas
+  - Criar endpoints para listar imagens de um documento
+  - Implementar endpoint para download de imagens individuais
+  - Desenvolver suporte a filtros e parâmetros de processamento
+  - Adicionar documentação OpenAPI para os novos endpoints
+
+- ✅ **2.2.3.8** Implementar testes e validação
+  - Criar testes unitários para cada formato de documento
+  - Desenvolver testes de integração para o fluxo completo
+  - Implementar validação de qualidade das imagens extraídas
+  - Adicionar testes de performance para documentos com muitas imagens
+
+**Melhorias futuras:**
+
+- 🔜 **2.2.3.3** Implementar extração de imagens de documentos DOCX
+  - Desenvolver função para extrair imagens incorporadas em documentos Word
+  - Criar sistema para preservar nomes e referências originais das imagens
+  - Implementar extração de imagens de cabeçalhos, rodapés e caixas de texto
+  - Adicionar suporte a imagens em diferentes formatos (PNG, JPEG, GIF, etc.)
+
+- 🔜 **2.2.3.4** Implementar extração de imagens de apresentações PPTX
+  - Desenvolver função para extrair imagens de slides
+  - Criar sistema para associar imagens aos slides correspondentes
+  - Implementar extração de imagens de plano de fundo e formas
+  - Adicionar suporte a imagens em SmartArt e outros elementos complexos
+
+- 🔜 **2.2.3.5** Criar sistema de armazenamento otimizado para imagens
+  - Desenvolver estrutura de diretórios para organizar imagens extraídas
+  - Implementar naming convention para facilitar rastreamento da origem
+  - Criar sistema para evitar duplicação de imagens idênticas
+  - Adicionar suporte a thumbnails para preview rápido
+
+- 🔜 **2.2.3.6** Implementar processamento básico de imagens
+  - Desenvolver funções para redimensionamento preservando proporções
+  - Criar sistema para otimização de tamanho de arquivo
+  - Implementar conversão entre formatos de imagem
+  - Adicionar suporte a ajustes básicos (brilho, contraste, etc.)
 
 ### 🔜 2.2.4 Criar sistema de filas para processamento assíncrono
 Desenvolver infraestrutura de filas (como Redis ou RabbitMQ) em containers separados para gerenciar processamento assíncrono, evitando sobrecarga do servidor web Nginx.
@@ -359,4 +409,4 @@ Desenvolver interface completa para administração de usuários, incluindo cria
 
 **Projeto Docling**
 **IFSul Câmpus Venâncio Aires**
-Última atualização: 24 de Abril 2025 - Sistema de Limpeza Automática Concluído e Melhorias Futuras Planejadas
+Última atualização: 25 de Abril 2025 - Conclusão da funcionalidade de extração de imagens e atualização do progresso

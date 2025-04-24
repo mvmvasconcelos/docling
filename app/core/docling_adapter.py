@@ -8,6 +8,7 @@ isolando o código da aplicação das dependências externas e facilitando teste
 import os
 import tempfile
 import io
+import uuid
 from pathlib import Path
 from typing import Dict, List, Optional, Union, Any
 
@@ -18,6 +19,10 @@ import pandas as pd
 import openpyxl
 import markdown
 from PIL import Image
+
+# Importar serviço de imagens
+from app.services.image_service import ImageExtractor
+from app.core.config import RESULTS_DIR
 
 
 class DoclingAdapter:
@@ -30,7 +35,13 @@ class DoclingAdapter:
 
     def __init__(self):
         """Inicializa o adaptador com configurações padrão."""
-        pass
+        # Inicializar o extrator de imagens
+        try:
+            self.image_extractor = ImageExtractor()
+            print("ImageExtractor inicializado com sucesso")
+        except Exception as e:
+            print(f"Erro ao inicializar ImageExtractor: {str(e)}")
+            self.image_extractor = None
 
     def process_document(
         self,
@@ -38,6 +49,7 @@ class DoclingAdapter:
         extract_text: bool = True,
         extract_tables: bool = True,
         extract_images: bool = False,
+        extract_pages_as_images: bool = False,
     ) -> Dict[str, Any]:
         """
         Processa um documento usando bibliotecas específicas para cada tipo de arquivo.
@@ -46,7 +58,8 @@ class DoclingAdapter:
             file_path: Caminho para o arquivo a ser processado
             extract_text: Se deve extrair texto do documento
             extract_tables: Se deve extrair tabelas do documento
-            extract_images: Se deve extrair imagens do documento
+            extract_images: Se deve extrair imagens incorporadas do documento
+            extract_pages_as_images: Se deve converter páginas inteiras em imagens (apenas para PDF)
 
         Returns:
             Dicionário com os resultados do processamento
@@ -65,7 +78,7 @@ class DoclingAdapter:
             # Processar com base na extensão do arquivo
             if file_extension == ".pdf":
                 self._process_pdf(
-                    file_path, processing_result, extract_text, extract_tables, extract_images
+                    file_path, processing_result, extract_text, extract_tables, extract_images, extract_pages_as_images
                 )
             elif file_extension == ".docx":
                 self._process_docx(
@@ -88,8 +101,18 @@ class DoclingAdapter:
                 "content": None,
             }
 
-    def _process_pdf(self, file_path, result, extract_text, extract_tables, extract_images):
-        """Processa um arquivo PDF."""
+    def _process_pdf(self, file_path, result, extract_text, extract_tables, extract_images, extract_pages_as_images=False):
+        """
+        Processa um arquivo PDF.
+
+        Args:
+            file_path: Caminho para o arquivo PDF
+            result: Dicionário para armazenar os resultados
+            extract_text: Se deve extrair texto
+            extract_tables: Se deve extrair tabelas
+            extract_images: Se deve extrair imagens incorporadas
+            extract_pages_as_images: Se deve converter páginas inteiras em imagens
+        """
         with open(file_path, "rb") as file:
             pdf_reader = PyPDF2.PdfReader(file)
 
@@ -104,15 +127,77 @@ class DoclingAdapter:
                 result["content"]["markdown"] = text  # Texto simples como markdown
                 result["content"]["html"] = f"<pre>{text}</pre>"  # Texto simples como HTML
 
+            # Extrair imagens
+            if extract_images:
+                print("Iniciando extração de imagens...")
+
+                # Verificar se result é None
+                if result is None:
+                    print("ERRO: result é None!")
+                    return
+
+                # Verificar se content existe
+                if "content" not in result:
+                    print("ERRO: 'content' não existe em result!")
+                    result["content"] = {}
+
+                document_id = result.get("id", str(uuid.uuid4()))
+                print(f"ID do documento: {document_id}")
+
+                # Garantir que o diretório de imagens exista
+                images_dir = os.path.join(RESULTS_DIR, document_id, "images")
+                print(f"Diretório de imagens: {images_dir}")
+                os.makedirs(images_dir, exist_ok=True)
+
+                # Garantir que metadata existe
+                if "metadata" not in result:
+                    print("Criando dicionário metadata")
+                    result["metadata"] = {}
+
+                # Verificar se o extrator de imagens está inicializado
+                if self.image_extractor is None:
+                    print("Erro: ImageExtractor não está inicializado")
+                    result["metadata"]["image_extraction_error"] = "Extrator de imagens não inicializado"
+                    return
+
+                try:
+                    print(f"Chamando extract_from_pdf com extract_pages={extract_pages_as_images}")
+                    images_result = self.image_extractor.extract_from_pdf(
+                        file_path=file_path,
+                        images_dir=images_dir,
+                        extract_pages=extract_pages_as_images
+                    )
+
+                    print(f"Resultado da extração: {images_result}")
+
+                    if images_result.get("success"):
+                        print("Extração bem-sucedida")
+                        result["content"]["images"] = images_result.get("images", [])
+                        result["metadata"]["image_count"] = len(images_result.get("images", []))
+                        print(f"Número de imagens extraídas: {result['metadata']['image_count']}")
+                    else:
+                        print(f"Extração falhou: {images_result.get('error', 'Erro desconhecido')}")
+                        result["metadata"]["image_extraction_error"] = images_result.get("error", "Erro desconhecido")
+                except Exception as e:
+                    print(f"Erro ao extrair imagens: {str(e)}")
+                    print(f"Tipo de erro: {type(e)}")
+                    print(f"Erro detalhado: {repr(e)}")
+                    import traceback
+                    traceback.print_exc()
+                    result["metadata"]["image_extraction_error"] = f"Erro ao extrair imagens: {str(e)}"
+
             # Metadados
-            result["metadata"] = {
+            if "metadata" not in result:
+                result["metadata"] = {}
+
+            result["metadata"].update({
                 "pages": len(pdf_reader.pages),
                 "title": (
                     pdf_reader.metadata.title
                     if pdf_reader.metadata and hasattr(pdf_reader.metadata, "title")
                     else "Sem título"
                 ),
-            }
+            })
 
     def _process_docx(self, file_path, result, extract_text, extract_tables, extract_images):
         """Processa um arquivo DOCX."""
@@ -147,15 +232,52 @@ class DoclingAdapter:
 
             result["content"]["tables"] = tables
 
+        # Extrair imagens
+        if extract_images:
+            document_id = result.get("id", str(uuid.uuid4()))
+
+            # Garantir que o diretório de imagens exista
+            images_dir = os.path.join(RESULTS_DIR, document_id, "images")
+            os.makedirs(images_dir, exist_ok=True)
+
+            # Garantir que metadata existe
+            if "metadata" not in result:
+                result["metadata"] = {}
+
+            # Verificar se o extrator de imagens está inicializado
+            if self.image_extractor is None:
+                print("Erro: ImageExtractor não está inicializado")
+                result["metadata"]["image_extraction_error"] = "Extrator de imagens não inicializado"
+                return
+
+            try:
+                images_result = self.image_extractor.extract_from_docx(
+                    file_path=file_path,
+                    images_dir=images_dir,
+                    extract_pages=False
+                )
+
+                if images_result.get("success"):
+                    result["content"]["images"] = images_result.get("images", [])
+                    result["metadata"]["image_count"] = len(images_result.get("images", []))
+                else:
+                    result["metadata"]["image_extraction_error"] = images_result.get("error", "Erro desconhecido")
+            except Exception as e:
+                print(f"Erro ao extrair imagens: {str(e)}")
+                result["metadata"]["image_extraction_error"] = f"Erro ao extrair imagens: {str(e)}"
+
         # Metadados
-        result["metadata"] = {
+        if "metadata" not in result:
+            result["metadata"] = {}
+
+        result["metadata"].update({
             "title": (
                 doc.core_properties.title
                 if hasattr(doc, "core_properties") and hasattr(doc.core_properties, "title")
                 else "Sem título"
             ),
             "pages": 1,  # DOCX não tem conceito de página
-        }
+        })
 
     def _process_excel(self, file_path, result, extract_text, extract_tables):
         """Processa um arquivo Excel."""
