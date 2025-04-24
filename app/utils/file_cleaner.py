@@ -123,12 +123,23 @@ class FileCleaner:
                 # Verificar se o resultado está isento com base em tags
                 metadata_file = os.path.join(result_dir, "metadata.json")
                 tags = []
+                processed_date = None
 
                 if os.path.exists(metadata_file):
                     try:
                         with open(metadata_file, "r", encoding="utf-8") as f:
                             metadata = json.load(f)
                             tags = metadata.get("tags", [])
+
+                            # Tentar obter a data de processamento dos metadados
+                            processed_at = metadata.get("processed_at")
+                            if processed_at:
+                                try:
+                                    # Tentar converter a string ISO para datetime
+                                    processed_date = datetime.fromisoformat(processed_at)
+                                except (ValueError, TypeError):
+                                    # Se falhar, ignorar e usar a data de modificação do arquivo
+                                    logger.debug(f"Formato de data inválido em metadados: {processed_at}")
                     except Exception as e:
                         logger.warning(f"Erro ao ler metadados de {result_dir}: {str(e)}")
 
@@ -136,8 +147,12 @@ class FileCleaner:
                     logger.debug(f"Resultado isento por tags: {result_dir}")
                     continue
 
-                # Determinar a data de referência (criação ou último acesso)
-                if self.policy.should_consider_last_access():
+                # Determinar a data de referência (criação, processamento ou último acesso)
+                if processed_date:
+                    # Usar a data de processamento dos metadados (mais confiável)
+                    reference_time = processed_date
+                    logger.debug(f"Usando data de processamento dos metadados para {result_dir}: {reference_time}")
+                elif self.policy.should_consider_last_access():
                     # Encontrar o arquivo mais recentemente acessado no diretório
                     latest_access_time = None
 
@@ -153,13 +168,21 @@ class FileCleaner:
                             except Exception:
                                 pass
 
-                    reference_time = latest_access_time or datetime.fromtimestamp(os.path.getmtime(result_dir))
+                    if latest_access_time:
+                        reference_time = latest_access_time
+                        logger.debug(f"Usando data do último acesso para {result_dir}: {reference_time}")
+                    else:
+                        # Fallback para a data de modificação do diretório
+                        reference_time = datetime.fromtimestamp(os.path.getmtime(result_dir))
+                        logger.debug(f"Usando data de modificação do diretório para {result_dir}: {reference_time}")
                 else:
                     # Usar apenas a data de criação do diretório
                     reference_time = datetime.fromtimestamp(os.path.getmtime(result_dir))
+                    logger.debug(f"Usando data de modificação do diretório para {result_dir}: {reference_time}")
 
                 # Verificar idade do resultado
                 result_age = now - reference_time
+                logger.debug(f"Idade do resultado {result_dir}: {result_age} (máximo permitido: {max_age})")
 
                 if result_age > max_age:
                     old_results.append(result_dir)
@@ -350,12 +373,22 @@ class FileCleaner:
                                 original_filename = metadata.get("original_filename")
 
                                 if original_filename:
-                                    # Construir caminho para o arquivo original no diretório de uploads
-                                    # Nota: Isso é uma aproximação, pois o nome real do arquivo no diretório
-                                    # de uploads pode ser diferente (UUID)
-                                    for filename in os.listdir(self.upload_dir):
-                                        file_path = os.path.join(self.upload_dir, filename)
-                                        processed_files.add(file_path)
+                                    # Tentar encontrar o arquivo original no diretório de uploads
+                                    # Primeiro, verificar se existe um arquivo com o mesmo nome
+                                    exact_match_path = os.path.join(self.upload_dir, original_filename)
+                                    if os.path.exists(exact_match_path):
+                                        processed_files.add(exact_match_path)
+                                        logger.debug(f"Arquivo processado encontrado (correspondência exata): {exact_match_path}")
+                                    else:
+                                        # Se não encontrar correspondência exata, procurar por arquivos com o mesmo nome base
+                                        # (ignorando extensão e possíveis prefixos/sufixos)
+                                        original_basename = os.path.splitext(original_filename)[0]
+                                        for filename in os.listdir(self.upload_dir):
+                                            if original_basename in filename:
+                                                file_path = os.path.join(self.upload_dir, filename)
+                                                if os.path.isfile(file_path):
+                                                    processed_files.add(file_path)
+                                                    logger.debug(f"Arquivo processado encontrado (correspondência parcial): {file_path}")
 
                     except Exception as e:
                         logger.warning(f"Erro ao ler metadados de {result_dir}: {str(e)}")
